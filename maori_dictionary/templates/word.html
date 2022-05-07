@@ -42,7 +42,6 @@
     </table>
 
 {% if logged_in %}
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
 <form id = "edit_word" class="dataForm" method="post">
             <h3>Edit Word</h3>
             <div class="form-group">
@@ -88,20 +87,5 @@
             <div class="form-group">
             </div>
         </form>
-<script>
-    $(function() {
-    var $form = $('form');
-    var initialState = $form.serialize();
-
-    $form.submit(function (e) {
-      if (initialState === $form.serialize()) {
-        console.log('Form is unchanged!');
-        e.preventDefault();
-      } else {
-        console.log('Form has changed!');
-      }
-    });
-});
-</script>
 {% endif %}
 {% endblock %}

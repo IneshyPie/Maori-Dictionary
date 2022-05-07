@@ -130,10 +130,18 @@ def render_word(id):
                     image_name = ?,
                     user_id = (SELECT id FROM user_details WHERE email = ?),
                     date_added = date()
-                 WHERE id = ?"""
+                 WHERE id = ?
+                 AND (
+                        maori <> ? OR
+                        english <> ? OR
+                        description <> ? OR
+                        level <> ? OR
+                        image_name <> ?
+                     )"""
         cur = con.cursor()
         try:
-            cur.execute(sql, (maori, english, description, level, image_name, email, id,))
+            cur.execute(sql, (maori, english, description, level, image_name, email, id, maori, english, description, level, image_name,))
+            print(f"{maori},{english},{description},{level},{image_name}")
         except sqlite3.IntegrityError:
             redirect('/?error=Update+failed+try+again+later')
         con.commit()
