@@ -11,7 +11,7 @@ from email.mime.multipart import MIMEMultipart
 app = Flask(__name__)
 bcrypt = Bcrypt(app)
 app.secret_key = "Duckyweu"
-DATABASE = "dictionary2.db"
+DATABASE = "database/dictionary.db"
 
 
 def create_connection(db_file):
@@ -24,11 +24,10 @@ def create_connection(db_file):
     return None
 
 
-
-def render_categories():
+def render_category_list():
     con = create_connection(DATABASE)
-    query = "SELECT id, category_name FROM Categories"
     cur = con.cursor()
+    query = "SELECT * FROM category"
     cur.execute(query)
 
     category_list = cur.fetchall()
@@ -38,20 +37,89 @@ def render_categories():
 
 @app.route('/')
 def render_home():
-    return render_template("home.html", category_list=render_categories())
+    return render_template("home.html", category_list=render_category_list(), logged_in=is_logged_in())
 
 
 @app.route('/fulldict')
 def render_dictionary():
     con = create_connection(DATABASE)
-    query = "SELECT maori, english, category_id, description, user_id FROM Dictionary"
+    query = "SELECT * FROM dictionary"
     cur = con.cursor()
     cur.execute(query)
 
     dictionary_list = cur.fetchall()
     con.close()
-    return render_template("full_dictionary.html", dictionary_list=dictionary_list, logged_in=is_logged_in())
+    return render_template("full_dictionary.html", dictionary_list=dictionary_list, logged_in=is_logged_in(),
+                           category_list=render_category_list())
 
+
+@app.route('/category/<id>')
+def render_category(id):
+    con = create_connection(DATABASE)
+    cur = con.cursor()
+    query = """SELECT c.category_name, d.maori, d.english, d.image_name, d.id
+               FROM category c
+               LEFT JOIN dictionary d on c.id = d.category_id
+               WHERE c.id = ?"""
+    cur.execute(query, (id,))
+    category_words = cur.fetchall()
+    print(category_words)
+    con.close()
+    if category_words[0][4] is None:
+        category_words_parm = []
+    category_words_parm = category_words
+    return render_template("category.html", category_words=category_words_parm, logged_in=is_logged_in(),
+                           category_list=render_category_list())
+
+
+@app.route('/word/<id>')
+def render_word(id):
+    con = create_connection(DATABASE)
+    cur = con.cursor()
+    query = """SELECT d.id, d.maori, d.english, d.description, d.level, d.image_name, d.date_added, ifnull(u.first_name, ''), ifnull(u.last_name, '')
+               FROM dictionary d
+               LEFT JOIN user_details u on d.user_id = u.id
+               WHERE d.id = ?"""
+    cur.execute(query, (id,))
+    word_list = cur.fetchall()
+    print(word_list)
+    con.close()
+    return render_template("word.html", word_list=word_list, logged_in=is_logged_in(),
+                           category_list=render_category_list())
+
+
+@app.route('/addcategory', methods=["POST", "GET"])
+def render_add_category():
+    if not is_logged_in():
+        return redirect('/')
+    if request.method == "POST":
+        print(request.form)
+        category_name = request.form.get("category_name").strip().title()
+        if category_name == "":
+            return redirect('/addcategory?error=Please+enter+category+name')
+
+        con = create_connection(DATABASE)
+        cur = con.cursor()
+        query = "SELECT id FROM category WHERE category_name = ?"
+        cur.execute(query, (category_name,))
+        category_ids = cur.fetchall()
+        if category_ids is None:
+            return redirect('/addcategory?error=Category+already+exists')
+        else:
+            sql = "INSERT INTO category (category_name) VALUES (?)"
+        try:
+            cur.execute(sql, (category_name,))
+        except sqlite3.IntegrityError:
+            return ('/addcategory?error=Could+not+add+category+try+again+later')
+        con.commit()
+        con.close()
+        return redirect('/addcategory')
+    error = request.args.get('error')
+
+    if error == None:
+        error = ""
+
+    return render_template("add_category.html", logged_in=is_logged_in(), category_list=render_category_list())
 
 
 def is_logged_in():
@@ -82,7 +150,7 @@ def render_signup():
         hashed_password = bcrypt.generate_password_hash(password)
 
         con = create_connection(DATABASE)
-        query = "INSERT INTO user_name (first_name, last_name, email, password) VALUES (?,?,?,?)"
+        query = "INSERT INTO user_details (first_name, last_name, email, password) VALUES (?,?,?,?)"
         cur = con.cursor()
         try:
             cur.execute(query, (fname, lname, email, hashed_password))
@@ -109,7 +177,7 @@ def render_login():
         email = request.form["email"].strip().lower()
         password = request.form["password"].strip()
 
-        query = """SELECT id, first_name, password FROM user_name WHERE email = ?"""
+        query = """SELECT id, first_name, password FROM user_details WHERE email = ?"""
         con = create_connection(DATABASE)
         cur = con.cursor()
         cur.execute(query, (email,))
