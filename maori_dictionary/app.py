@@ -92,8 +92,35 @@ def render_category(id):
                            category_list=render_category_list())
 
 
-@app.route('/word/<id>')
+@app.route('/word/<id>', methods=["POST", "GET"])
 def render_word(id):
+    if request.method == "POST":
+        print(request.form)
+        maori = request.form.get("maori").strip().title()
+        english = request.form.get("english").strip().title()
+        description = request.form.get("description").strip()
+        level = request.form.get("level")
+        email = session.get('email')
+
+        con = create_connection(DATABASE)
+        sql = """UPDATE dictionary
+                 SET maori = ?,
+                    english = ?,
+                    description = ?,
+                    level = ?,
+                    user_id = (SELECT id FROM user_details WHERE email = ?),
+                    date_added = date()
+                 WHERE id = ?"""
+        cur = con.cursor()
+        try:
+            cur.execute(sql, (maori, english, description, level, email, id,))
+        except sqlite3.IntegrityError:
+            redirect('/?error=Update+failed+try+again+later')
+        con.commit()
+        con.close()
+        return redirect(f'/word/{id}')
+
+
     con = create_connection(DATABASE)
     cur = con.cursor()
     query = """SELECT d.id, d.maori, d.english, d.description, d.level, d.image_name, d.date_added, ifnull(u.first_name, ''), ifnull(u.last_name, '')
@@ -101,10 +128,19 @@ def render_word(id):
                LEFT JOIN user_details u on d.user_id = u.id
                WHERE d.id = ?"""
     cur.execute(query, (id,))
-    word_list = cur.fetchall()
-    print(word_list)
+    word_details = cur.fetchall()
+    checked = []
+    for i in range(1, 11):
+        print(i)
+        if word_details[0][4] == i:
+            checked.append("checked")
+        else:
+            checked.append("")
+    print(checked)
+    print(word_details)
+    print(word_details[0][4])
     con.close()
-    return render_template("word.html", word_list=word_list, logged_in=is_logged_in(),
+    return render_template("word.html", word_details=word_details, logged_in=is_logged_in(), checked=checked,
                            category_list=render_category_list())
 
 
