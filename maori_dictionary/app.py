@@ -8,6 +8,8 @@ import ssl
 from smtplib import SMTPAuthenticationError
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
+from pathlib import Path
+
 app = Flask(__name__)
 bcrypt = Bcrypt(app)
 app.secret_key = "Duckyweu"
@@ -33,6 +35,21 @@ def render_category_list():
     category_list = cur.fetchall()
     con.close()
     return category_list
+
+
+def get_image_filename(english_name):
+    path = "static\\images\\"
+    file_name = f"{english_name}.jpg"
+    path_file = f"{path}{file_name}"
+    print(path_file)
+    if not Path(path_file).is_file():
+        print("inside jpg if")
+        file_name = f"{english_name}.png"
+        path_file = f"{path}{file_name}"
+        if not Path(path_file).is_file():
+            print("inside png if")
+            return "noimage.png"
+    return file_name
 
 
 @app.route('/')
@@ -62,7 +79,7 @@ def render_category(id):
         description = request.form.get("description").strip()
         level = request.form.get("level")
         email = session.get('email')
-        image_name = "noimage.png"
+        image_name = get_image_filename(english)
 
         con = create_connection(DATABASE)
         sql = """INSERT INTO dictionary (maori, english, description, level, category_id, image_name, date_added, user_id)
@@ -90,7 +107,7 @@ def render_category(id):
             category_words_parm = []
         category_words_parm = category_words
         return render_template("category.html", category_words=category_words_parm, logged_in=is_logged_in(),
-                           category_list=render_category_list())
+                                category_list=render_category_list())
 
 
 @app.route('/word/<id>', methods=["POST", "GET"])
@@ -102,6 +119,7 @@ def render_word(id):
         description = request.form.get("description").strip()
         level = request.form.get("level")
         email = session.get('email')
+        image_name = get_image_filename(english)
 
         con = create_connection(DATABASE)
         sql = """UPDATE dictionary
@@ -109,12 +127,13 @@ def render_word(id):
                     english = ?,
                     description = ?,
                     level = ?,
+                    image_name = ?,
                     user_id = (SELECT id FROM user_details WHERE email = ?),
                     date_added = date()
                  WHERE id = ?"""
         cur = con.cursor()
         try:
-            cur.execute(sql, (maori, english, description, level, email, id,))
+            cur.execute(sql, (maori, english, description, level, image_name, email, id,))
         except sqlite3.IntegrityError:
             redirect('/?error=Update+failed+try+again+later')
         con.commit()
@@ -274,6 +293,7 @@ def render_signup():
         email = request.form.get("email").strip().lower()
         password = request.form.get("password")
         password2 = request.form.get("confirm_password")
+        admin = request.form.get("admin")
         if password != password2:
             return redirect('/signup?error=Passwords+dont+match')
         if len(password) < 8:

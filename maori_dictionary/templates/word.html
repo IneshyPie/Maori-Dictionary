@@ -13,9 +13,9 @@
 
 {% block main %}
     {% if logged_in %}
-        <h2>{{ maori }} <strong>-</strong> <a href="\delete_word\{{ id }}">Delete Word</a></h2>
+        <h2>{{ maori }} - ({{english}})<strong>-</strong> <a href="\delete_word\{{ id }}">Delete Word</a></h2>
     {% else %}
-        <h2>{{ word_details[0][1] }}</h2>
+        <h2>{{ maori }} - ({{english}})</h2>
     {% endif %}
     <table class="word-table">
         <tbody>
@@ -42,6 +42,7 @@
     </table>
 
 {% if logged_in %}
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
 <form id = "edit_word" class="dataForm" method="post">
             <h3>Edit Word</h3>
             <div class="form-group">
@@ -87,5 +88,20 @@
             <div class="form-group">
             </div>
         </form>
+<script>
+    $(function() {
+    var $form = $('form');
+    var initialState = $form.serialize();
+
+    $form.submit(function (e) {
+      if (initialState === $form.serialize()) {
+        console.log('Form is unchanged!');
+        e.preventDefault();
+      } else {
+        console.log('Form has changed!');
+      }
+    });
+});
+</script>
 {% endif %}
 {% endblock %}
