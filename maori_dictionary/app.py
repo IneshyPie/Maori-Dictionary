@@ -74,8 +74,8 @@ def render_dictionary():
 def render_category(id):
     if request.method == "POST":
         print(request.form)
-        maori = request.form.get("maori").strip().title()
-        english = request.form.get("english").strip().title()
+        maori = request.form.get("maori").strip()
+        english = request.form.get("english").strip()
         description = request.form.get("description").strip()
         level = request.form.get("level")
         email = session.get('email')
@@ -114,8 +114,8 @@ def render_category(id):
 def render_word(id):
     if request.method == "POST":
         print(request.form)
-        maori = request.form.get("maori").strip().title()
-        english = request.form.get("english").strip().title()
+        maori = request.form.get("maori").strip()
+        english = request.form.get("english").strip()
         description = request.form.get("description").strip()
         level = request.form.get("level")
         email = session.get('email')
