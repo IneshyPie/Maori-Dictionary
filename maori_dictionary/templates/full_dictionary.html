@@ -5,16 +5,27 @@ Full Dictionary
 {% endblock %}
 
 {% block main %}
+<h1> Full Dictionary</h1>
+ <table id = "fulldict" class="table">
+        <thead>
+            <tr>
+                <th><strong>Maori</strong></th>
+                <th><strong>English</strong></th>
+                <th><strong>Definition</strong></th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for word in dictionary_list %}
+                <tr>
+                    <td>{{ word[1] }}</td>
+                    <td>{{ word[2] }}</td>
+                    <td>{{ word[3] }}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
 
-<div class="word-box">
-{% for word in dictionary_list %}
-    <div class="word-box">
-    <p><strong>Item: </strong>{{ word[4] }}</p>
-    <p><strong>Maori: </strong>{{ word[0] }}</p>
-    <p><strong>English: </strong>{{ word[1] }}</p>
-    <p><strong>Category: </strong>{{ word[2] }}</p>
-    <p><strong>Definition: </strong>{{ word[3] }}</p>
-    </div>
-{% endfor %}
-</div>
+
+
+
 {% endblock %}

@@ -32,13 +32,13 @@
     grid-template-areas: 'nav header' 'main main' 'footer footer';
     }
 
+.dataForm [type="radio" i] {
+    margin-top: 8px;
+    width: 4%;
+}
 
-.radiobutton {
-    display: flex;
-    text-align: left;
-    flex-direction: row;
-    justify-content: left;
-    padding: 70px 250px 28px 45px;
+#delete_category, #delete_word {
+    padding-top: 0;
 }
 
 .inline {
@@ -48,11 +48,11 @@
 .link-button {
   background: none;
   border: none;
-  color: blue;
+  color: black;
   text-decoration: underline;
   cursor: pointer;
   font-size: 1em;
-  font-family: serif;
+  font-family: Comfortaa, sans-serif;
 }
 .link-button:focus {
   outline: none;
@@ -152,10 +152,20 @@ img {
     margin-bottom: 10px;
 }
 
+textarea {
+    border-color: black;
+    border-width: 2px;
+    height: 150px
+}
+
 .dataForm p input {
     display: inline;
     width: 1rem;
     margin-left: 0.5rem;
+}
+
+#category-submit, #signup-submit, #login-submit, #word-submit, #signup-reset {
+    width: 760px;
 }
 
 .error {
@@ -174,19 +184,50 @@ table {
     border-collapse: collapse;
 }
 
+table thead {
+    background-color: black;
+    color: white;
+}
+
+.word-table tbody tr {
+    border: 2px solid black;
+    width: 100%;
+}
+
+.word-table td:first-child {
+    width: 20%
+}
+
 th, td {
     border: 1px solid #888;
     padding: 0.2rem;
     text-align: left;
 }
 th {
-    background-color: #000;
-    color: #fff;
+    background-color: #000000;
+    color: #ffffff;
 }
 
-img .thumb {
+tr th:last-child {
+    width: 90px;
+}
+
+tr td:last-child {
+    width: 90px;
+}
+
+#fulldict th:last-child {
+    width: 100%;
+}
+
+#fulldict td:last-child {
+    width: 100%;
+}
+
+.thumb {
     max-width: 90px;
 }
+
 footer {
     grid-area: footer;
     padding: 1rem;

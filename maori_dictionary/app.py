@@ -62,13 +62,14 @@ def render_category(id):
         description = request.form.get("description").strip()
         level = request.form.get("level")
         email = session.get('email')
+        image_name = "noimage.png"
 
         con = create_connection(DATABASE)
         sql = """INSERT INTO dictionary (maori, english, description, level, category_id, image_name, date_added, user_id)
-                   VALUES (?, ?, ?, ?, ?, null, date(), (SELECT id FROM user_details WHERE email = ?))"""
+                   VALUES (?, ?, ?, ?, ?, ?, date(), (SELECT id FROM user_details WHERE email = ?))"""
         cur = con.cursor()
         try:
-            cur.execute(sql, (maori, english, description, level, id, email,))
+            cur.execute(sql, (maori, english, description, level, id, image_name, email,))
         except sqlite3.IntegrityError:
             redirect('/?error=Email+is+already+used')
         con.commit()
@@ -295,7 +296,7 @@ def render_signup():
     if error == None:
         error = ""
 
-    return render_template("signup.html", error=error, logged_in=is_logged_in())
+    return render_template("signup.html", error=error, logged_in=is_logged_in(), category_list=render_category_list())
 
 
 @app.route('/login', methods=["POST", "GET"])
@@ -331,7 +332,7 @@ def render_login():
         print(session)
         return redirect('/')
 
-    return render_template("login.html", logged_in=is_logged_in())
+    return render_template("login.html", logged_in=is_logged_in(), category_list=render_category_list())
 
 
 @app.route('/logout')

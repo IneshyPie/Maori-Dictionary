@@ -7,13 +7,13 @@
 {% block main %}
     <h2>{{ category_words[0][0] }} contents<strong>- Ready to Delete</strong></h2>
     <form class="dataForm" method="post" action="/action_delete_category/{{ category_words[0][5] }}" class="inline"/>
-    <div class="form-group">
+    <div id = "delete_category" class="form-group">
         <input type="hidden">
         <p>Are you sure you wish to delete the category <strong>{{ category_words[0][0] }} </strong>
         <button type="submit" name="submit_param" value="submit_value" class="link-button">Yes</button>
         / <a href="/category/{{ category_words[0][5] }}">No</a></p>
     </div>
-    <table class="cart-table">
+    <table class="table">
         <thead>
         <tr>
             <td><strong>Maori</strong></td>

@@ -7,27 +7,33 @@
 {% block main %}
     <h2>{{ word_list[0][1] }} contents<strong>- Ready to Delete</strong></h2>
     <form class="dataForm" method="post" action="/action_delete_word/{{ word_list[0][0] }}" class="inline"/>
-    <div class="form-group">
+    <div id = "delete_word" class="form-group">
         <input type="hidden">
         <p>Are you sure you wish to delete the word <strong>{{ word_list[0][1] }} </strong>
         <button type="submit" name="submit_param" value="submit_value" class="link-button">Yes</button>
         / <a href="/word/{{ word_list[0][0] }}">No</a></p>
     </div>
-    <table class="cart-table">
+<table class="word-table">
         <tbody>
-            {% for word in word_list %}
+            {% if maori != None %}
                 <tr>
-                    {% if word[1] != None %}
-                        <p><strong>Maori: </strong>{{ word[1] }}</p>
-                        <p><strong>English: </strong>{{ word[2] }}</p>
-                        <p><strong>Description: </strong>{{ word[3] }}</p>
-                        <p><strong>Level: </strong>{{ word[4] }}</p>
-                        <p><strong>Date Added: </strong>{{ word[6] }}</p>
-                        <p><strong>Edited By: </strong>{{ word[7] }} {{ word[8] }}</p>
-                        <img src= "../static/images/{{ word[5] }}">
-                    {% endif %}
+                    <td><strong>Description: </strong></td>
+                    <td>{{ word_list[0][3] }}</td>
                 </tr>
-            {% endfor %}
+                <tr>
+                    <td><strong>Level: </strong></td>
+                    <td>{{ word_list[0][4] }}</td>
+                </tr>
+                <tr>
+                    <td><strong>Date Added: </strong></td>
+                    <td>{{ word_list[0][6] }}</td>
+                </tr>
+                <tr>
+                    <td><strong>Edited By: </strong></td>
+                    <td>{{ word_list[0][7] }} {{ word_list[0][8] }}</td>
+                </tr>
+                    <td colspan="2"><img src= "../static/images/{{ word_list[0][5] }}"></td>
+            {% endif %}
         </tbody>
     </table>
 {% endblock %}
