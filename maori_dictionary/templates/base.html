@@ -24,16 +24,14 @@
 			<ul>
                 <li><a href="\">Home</a></li>
 				<li><a href="\fulldict">Full Dictionary</a></li>
-				{% if logged_in %}
-					<a href="/addcategory">Add Category</a>
-					<a href="/logout">Logout</a>
-                {% else %}
-                    <a href="/login">login</a>
-                {% endif %}
-				<li><p>--------------------------</p></li>
                 {% for category in category_list %}
                     <li><a href="/category/{{ category[0] }}">{{ category[1] }}</a></li>
                 {% endfor %}
+                {% if logged_in %}
+                    <a href="/logout">logout</a>
+                {% else %}
+                    <a href="/login">login</a>
+                {% endif %}
 			</ul>
 		</nav>
 

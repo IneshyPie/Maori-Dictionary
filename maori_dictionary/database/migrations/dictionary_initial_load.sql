@@ -1,6 +1,3 @@
-DELETE FROM dictionary;
-DELETE FROM sqlite_sequence WHERE name = 'dictionary';
-
 INSERT INTO dictionary(maori, english, description, level, category_id, image_name, user_id, date_added) VALUES('hamama','to shout', 'To call out loudly.', '3', '1', 'noimage.png', null, date());
 INSERT INTO dictionary(maori, english, description, level, category_id, image_name, user_id, date_added) VALUES('haramai (haere mai)','come', 'To move towards someone.', '2', '1', 'noimage.png', null, date());
 INSERT INTO dictionary(maori, english, description, level, category_id, image_name, user_id, date_added) VALUES('hari','to carry', 'To move an object from one place to another.', '5', '1', 'noimage.png', null, date());

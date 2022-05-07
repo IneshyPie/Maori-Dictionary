@@ -1,6 +1,3 @@
-DELETE FROM category;
-DELETE FROM sqlite_sequence WHERE name = 'category';
-
 INSERT INTO category(id, category_name) VALUES(1,'Actions');
 INSERT INTO category(id, category_name) VALUES(2,'Animals');
 INSERT INTO category(id, category_name) VALUES(3,'Clothing');

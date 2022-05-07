@@ -32,21 +32,6 @@
     grid-template-areas: 'nav header' 'main main' 'footer footer';
     }
 
-
-.radiobutton {
-    display: flex;
-    text-align: left;
-    flex-direction: row;
-    justify-content: left;
-    padding: 70px 250px 28px 45px;
-
-
-
-
-
-}
-
-
 header {
     grid-area: header;
     background-color: #f00;
