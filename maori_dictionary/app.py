@@ -2,7 +2,6 @@ from flask import Flask, render_template, request, redirect, session
 import sqlite3
 from sqlite3 import Error
 from flask_bcrypt import Bcrypt
-from pathlib import Path
 from datetime import datetime
 import smtplib
 import ssl
@@ -12,7 +11,7 @@ from email.mime.multipart import MIMEMultipart
 app = Flask(__name__)
 bcrypt = Bcrypt(app)
 app.secret_key = "Duckyweu"
-DATABASE = "/Maori Dictionary/database/dictionary.db"
+DATABASE = "database/dictionary.db"
 
 
 def create_connection(db_file):
@@ -21,8 +20,6 @@ def create_connection(db_file):
         connection.execute('pragma foreign_keys=ON')
         return connection
     except Error as e:
-        print(Path.cwd())
-        print(db_file)
         print(e)
     return None
 
@@ -56,21 +53,168 @@ def render_dictionary():
                            category_list=render_category_list())
 
 
-@app.route('/category/<id>')
+@app.route('/category/<id>', methods=["POST", "GET"])
 def render_category(id):
+    if request.method == "POST":
+        print(request.form)
+        maori = request.form.get("maori").strip().title()
+        english = request.form.get("english").strip().title()
+        description = request.form.get("description").strip()
+        level = request.form.get("level")
+        email = session.get('email')
+
+        con = create_connection(DATABASE)
+        sql = """INSERT INTO dictionary (maori, english, description, level, category_id, image_name, date_added, user_id)
+                   VALUES (?, ?, ?, ?, ?, null, date(), (SELECT id FROM user_details WHERE email = ?))"""
+        cur = con.cursor()
+        try:
+            cur.execute(sql, (maori, english, description, level, id, email,))
+        except sqlite3.IntegrityError:
+            redirect('/?error=Email+is+already+used')
+        con.commit()
+        con.close()
+        return redirect(f'/category/{id}')
+    else:
+        con = create_connection(DATABASE)
+        cur = con.cursor()
+        query = """SELECT c.category_name, d.maori, d.english, d.image_name, d.id, c.id
+                   FROM category c
+                   LEFT JOIN dictionary d on c.id = d.category_id
+                   WHERE c.id = ?"""
+        cur.execute(query, (id,))
+        category_words = cur.fetchall()
+        print(category_words)
+        con.close()
+        if category_words[0][4] is None:
+            category_words_parm = []
+        category_words_parm = category_words
+        return render_template("category.html", category_words=category_words_parm, logged_in=is_logged_in(),
+                           category_list=render_category_list())
+
+
+@app.route('/word/<id>')
+def render_word(id):
     con = create_connection(DATABASE)
     cur = con.cursor()
-    query = """SELECT c.category_name, d.maori, d.english, d.image_name, d.id
+    query = """SELECT d.id, d.maori, d.english, d.description, d.level, d.image_name, d.date_added, ifnull(u.first_name, ''), ifnull(u.last_name, '')
                FROM dictionary d
-               JOIN category c on c.id = d.category_id
-               WHERE d.category_id = ?"""
+               LEFT JOIN user_details u on d.user_id = u.id
+               WHERE d.id = ?"""
     cur.execute(query, (id,))
+    word_list = cur.fetchall()
+    print(word_list)
+    con.close()
+    return render_template("word.html", word_list=word_list, logged_in=is_logged_in(),
+                           category_list=render_category_list())
 
+
+@app.route('/delete_category/<id>')
+def render_delete_category(id):
+    if not is_logged_in():
+        return redirect('/')
+    con = create_connection(DATABASE)
+    cur = con.cursor()
+    query = """SELECT c.category_name, d.maori, d.english, d.image_name, d.id, c.id
+                   FROM category c
+                   LEFT JOIN dictionary d on c.id = d.category_id
+                   WHERE c.id = ?"""
+    cur.execute(query, (id,))
     category_words = cur.fetchall()
     print(category_words)
     con.close()
-    return render_template("category.html", category_words=category_words, logged_in=is_logged_in(),
+    if category_words[0][4] is None:
+        category_words_parm = []
+    category_words_parm = category_words
+    return render_template("delete_category.html", category_words=category_words_parm, logged_in=is_logged_in(),
                            category_list=render_category_list())
+
+
+@app.route('/delete_word/<id>')
+def render_delete_word(id):
+    if not is_logged_in():
+        return redirect('/')
+    con = create_connection(DATABASE)
+    cur = con.cursor()
+    query = """SELECT d.id, d.maori, d.english, d.description, d.level, d.image_name, d.date_added, ifnull(u.first_name, ''), ifnull(u.last_name, '')
+               FROM dictionary d
+               LEFT JOIN user_details u on d.user_id = u.id
+               WHERE d.id = ?"""
+    cur.execute(query, (id,))
+    word_list = cur.fetchall()
+    print(word_list)
+    con.close()
+    return render_template("delete_word.html", word_list=word_list, logged_in=is_logged_in(),
+                           category_list=render_category_list())
+
+
+@app.route('/action_delete_category/<id>', methods=["POST"])
+def action_delete_category(id):
+    if not is_logged_in():
+        return redirect('/')
+
+    con = create_connection(DATABASE)
+    query = "DELETE FROM category WHERE id = ?"
+    cur = con.cursor()
+    try:
+        print(id)
+        cur.execute(query, (id,))
+    except sqlite3.IntegrityError:
+        redirect('/?error=Unknown+error+occurred+during+delete+of+category')
+    con.commit()
+    con.close()
+    return redirect('/')
+
+
+@app.route('/action_delete_word/<id>', methods=["POST"])
+def action_delete_word(id):
+    if not is_logged_in():
+        return redirect('/')
+
+    con = create_connection(DATABASE)
+    query = "DELETE FROM dictionary WHERE id = ?"
+    cur = con.cursor()
+    try:
+        print(id)
+        cur.execute(query, (id,))
+    except sqlite3.IntegrityError:
+        redirect('/?error=Unknown+error+occurred+during+delete+of+category')
+    con.commit()
+    con.close()
+    return redirect('/')
+
+
+@app.route('/addcategory', methods=["POST", "GET"])
+def render_add_category():
+    if not is_logged_in():
+        return redirect('/')
+    if request.method == "POST":
+        print(request.form)
+        category_name = request.form.get("category_name").strip().title()
+        if category_name == "":
+            return redirect('/addcategory?error=Please+enter+category+name')
+
+        con = create_connection(DATABASE)
+        cur = con.cursor()
+        query = "SELECT id FROM category WHERE category_name = ?"
+        cur.execute(query, (category_name,))
+        category_ids = cur.fetchall()
+        if len(category_ids) != 0:
+            return redirect('/addcategory?error=Category+already+exists')
+        else:
+            sql = "INSERT INTO category (category_name) VALUES (?)"
+        try:
+            cur.execute(sql, (category_name,))
+        except sqlite3.IntegrityError:
+            return ('/addcategory?error=Could+not+add+category+try+again+later')
+        con.commit()
+        con.close()
+        return redirect('/addcategory')
+    error = request.args.get('error')
+
+    if error == None:
+        error = ""
+
+    return render_template("add_category.html", logged_in=is_logged_in(), category_list=render_category_list())
 
 
 def is_logged_in():

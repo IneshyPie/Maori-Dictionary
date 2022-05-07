@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+
+{% block title %}
+    Maori Dictionary Delete Category {{ category_words[0][0] }}
+{% endblock %}
+
+{% block main %}
+    <h2>{{ category_words[0][0] }} contents<strong>- Ready to Delete</strong></h2>
+    <form class="dataForm" method="post" action="/action_delete_category/{{ category_words[0][5] }}" class="inline"/>
+    <div class="form-group">
+        <input type="hidden">
+        <p>Are you sure you wish to delete the category <strong>{{ category_words[0][0] }} </strong>
+        <button type="submit" name="submit_param" value="submit_value" class="link-button">Yes</button>
+        / <a href="/category/{{ category_words[0][5] }}">No</a></p>
+    </div>
+    <table class="cart-table">
+        <thead>
+        <tr>
+            <td><strong>Maori</strong></td>
+            <td><strong>English</strong></td>
+            <td><strong>Image</strong></td>
+        </tr>
+        </thead>
+        <tbody>
+            {% for word in category_words %}
+                <tr>
+                    {% if word[1] != None %}
+                        <td><a href="\word\{{ word[4] }}">{{ word[1] }}</a></td>
+                        <td>{{ word[2] }}</td>
+                        <td><img src= "../static/images/{{ word[3] }}"></td>
+                    {% endif %}
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% endblock %}

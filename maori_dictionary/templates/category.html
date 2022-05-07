@@ -1,18 +1,91 @@
 {% extends "base.html" %}
 
 {% block title %}
-{{ category_words[0][0] }}
+    Maori Dictionary Category {{ category_words[0][0] }}
 {% endblock %}
 
 {% block main %}
-    <div class="word-box">
+
+{% if logged_in %}
+    <h2>{{ category_words[0][0] }} <strong>-</strong> <a href="\delete_category\{{ category_words[0][5] }}">Delete Category</a></h2>
+{% else %}
+    <h2>{{ category_words[0][0] }}</h2>
+{% endif %}
+<table class="cart-table">
+    <thead>
+    <tr>
+        <td><strong>Maori</strong></td>
+        <td><strong>English</strong></td>
+        <td><strong>Image</strong></td>
+    </tr>
+    </thead>
+    <tbody>
         {% for word in category_words %}
-            <div class="word-box">
-                <p><strong>Maori: </strong>{{ word[1] }}</p>
-                <p><strong>English: </strong>{{ word[2] }}</p>
-                <img src= "../static/images/{{ word[3] }}">
-                <p><strong>Image: </strong>{{ word[3] }}</p>
-            </div>
+            <tr>
+                {% if word[1] != None %}
+                    <td><a href="\word\{{ word[4] }}">{{ word[1] }}</a></td>
+                    <td>{{ word[2] }}</td>
+                    <td><img src= "../static/images/{{ word[3] }}"></td>
+                {% endif %}
+            </tr>
         {% endfor %}
-    </div>
+    </tbody>
+</table>
+{% if logged_in %}
+    <form id = "add_word" class="dataForm" method="post"/>
+        <div class="form-group">
+            <div><strong>Add Word to this Category</strong></div>
+            <br />
+            <div class="form-element">Maori<input type="text" name = "maori" required></div>
+            <div class="form-element">English<input type="text" name = "english" required></div>
+            <div class="form-element">Description<textarea name="description" form="add_word"></textarea></div>
+            <div class="radiobutton">
+                <div>
+                    <input type="radio" id="1" name="level" value="1" checked>
+                    <label for="1">1</label>
+                </div>
+                <div>
+                    <input type="radio" id="2" name="level" value="2">
+                    <label for="2">2</label>
+                </div>
+                <div>
+                    <input type="radio" id="3" name="level" value="3">
+                    <label for="3">3</label>
+                </div>
+                <div>
+                    <input type="radio" id="4" name="level" value="4">
+                    <label for="4">4</label>
+                </div>
+                <div>
+                    <input type="radio" id="5" name="level" value="5">
+                    <label for="5">5</label>
+                </div>
+                <div>
+                    <input type="radio" id="6" name="level" value="6">
+                    <label for="6">6</label>
+                </div>
+                <div>
+                    <input type="radio" id="7" name="level" value="7">
+                    <label for="7">7</label>
+                </div>
+                <div>
+                    <input type="radio" id="8" name="level" value="8">
+                    <label for="8">8</label>
+                </div>
+                <div>
+                    <input type="radio" id="9" name="level" value="9">
+                    <label for="9">9</label>
+                </div>
+                <div>
+                    <input type="radio" id="10" name="level" value="10">
+                    <label for="10">10</label>
+                </div>
+            </div>
+        </div>
+
+    <div class="form-group">
+            <div class="form-label"></div>
+            <div class="form-element"><input type="submit" name = "submit" id = "submit"></div>
+        </div>
+{% endif %}
 {% endblock %}

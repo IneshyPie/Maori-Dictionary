@@ -5,7 +5,7 @@ category_list = []
 image_list = []
 
 def load_image_filenames():
-    for path in Path('.\static\images').iterdir():
+    for path in Path('..\..\static\images').iterdir():
         #print(path.name)
         image_list.append(path.name)
         
@@ -29,9 +29,12 @@ def find_image_filename(english_name):
         if image_filename == english_name + ".jpg":
             return image_filename
     return "noimage.png"
-        
+
+
 def dictionary_initial_load():
-    with open('dictionary_initial_load.sql', 'w') as f:
+    with open('2_dictionary_initial_load.sql', 'w') as f:
+        f.write(f"DELETE FROM dictionary;\n")
+        f.write(f"DELETE FROM sqlite_sequence WHERE name = 'dictionary';\n\n")
         with open('Vocab_List.csv') as csv_file:
             csv_reader = csv.reader(csv_file, delimiter=',')
             line_count = 0
@@ -48,7 +51,9 @@ def dictionary_initial_load():
 
 
 def category_initial_load():
-    with open('category_initial_load.sql', 'w') as f:
+    with open('1_category_initial_load.sql', 'w') as f:
+        f.write(f"DELETE FROM category;\n")
+        f.write(f"DELETE FROM sqlite_sequence WHERE name = 'category';\n\n")
         category_count = 0
         for category in category_list:
             print(f'Category_id: {category[0]}, Category_name: {category[1]}')
