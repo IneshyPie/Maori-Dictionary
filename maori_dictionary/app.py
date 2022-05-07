@@ -317,7 +317,7 @@ def render_login():
         con.close()
 
         try:
-            customer_id = user_data[0][0]
+            user_id = user_data[0][0]
             first_name = user_data[0][1]
             db_password = user_data[0][2]
         except IndexError:
@@ -327,7 +327,7 @@ def render_login():
             return redirect(request.referrer + '?error=Email+invalid+or+Password+incorrect')
 
         session['email'] = email
-        session['customer_id'] = customer_id
+        session['user_id'] = user_id
         session['first_name'] = first_name
         print(session)
         return redirect('/')
