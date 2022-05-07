@@ -46,15 +46,15 @@
             <h3>Edit Word</h3>
             <div class="form-group">
                 <div class="form-label">Maori</div>
-                <div class="form-element"><input type="text" name = "maori" value = "{{ maori }}" required></div>
+                <div class="form-element"><input type="text" name = "maori" value = "{{ maori }}" maxlength="30" required></div>
             </div>
             <div class="form-group">
                 <div class="form-label">English</div>
-                <div class="form-element"><input type="text" name = "english" value= "{{ english }}" required></div>
+                <div class="form-element"><input type="text" name = "english" value= "{{ english }}" maxlength="30" required></div>
             </div>
             <div class="form-group">
                 <div class="form-label">Description</div>
-                <div class="form-element"><textarea name="description" form="edit_word">{{ description }}</textarea></div>
+                <div class="form-element"><textarea name="description" form="edit_word" maxlength="1000">{{ description }}</textarea></div>
             </div>
             <div class="form-group">
                 <div class="form-label">Level</div>
