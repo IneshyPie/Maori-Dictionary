@@ -12,8 +12,8 @@
 {% endblock %}
 
 {% block main %}
-    {% if logged_in %}
-        <h2>{{ maori }} - ({{english}})<strong>-</strong> <a href="\delete_word\{{ id }}">Delete Word</a></h2>
+    {% if logged_in and allow_edit %}
+        <h2>{{ maori }} - ({{english}})<strong> -</strong> <a href="\delete_word\{{ id }}">Delete Word</a></h2>
     {% else %}
         <h2>{{ maori }} - ({{english}})</h2>
     {% endif %}
@@ -41,7 +41,7 @@
         </tbody>
     </table>
 
-{% if logged_in %}
+{% if logged_in and allow_edit %}
 <form id = "edit_word" class="dataForm" method="post">
             <h3>Edit Word</h3>
             <div class="form-group">

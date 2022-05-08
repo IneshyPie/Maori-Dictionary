@@ -54,7 +54,8 @@ def get_image_filename(english_name):
 
 @app.route('/')
 def render_home():
-    return render_template("home.html", category_list=render_category_list(), logged_in=is_logged_in())
+    return render_template("home.html", category_list=render_category_list(), logged_in=is_logged_in(),
+                           allow_edit=allow_edit())
 
 
 @app.route('/fulldict')
@@ -107,7 +108,7 @@ def render_category(id):
             category_words_parm = []
         category_words_parm = category_words
         return render_template("category.html", category_words=category_words_parm, logged_in=is_logged_in(),
-                                category_list=render_category_list())
+                               category_list=render_category_list(), allow_edit=allow_edit())
 
 
 @app.route('/word/<id>', methods=["POST", "GET"])
@@ -169,12 +170,12 @@ def render_word(id):
     print(word_details[0][4])
     con.close()
     return render_template("word.html", word_details=word_details, logged_in=is_logged_in(), checked=checked,
-                           category_list=render_category_list())
+                           category_list=render_category_list(), allow_edit=allow_edit())
 
 
 @app.route('/delete_category/<id>')
 def render_delete_category(id):
-    if not is_logged_in():
+    if not is_logged_in() or not allow_edit():
         return redirect('/')
     con = create_connection(DATABASE)
     cur = con.cursor()
@@ -195,7 +196,7 @@ def render_delete_category(id):
 
 @app.route('/delete_word/<id>')
 def render_delete_word(id):
-    if not is_logged_in():
+    if not is_logged_in() or not allow_edit():
         return redirect('/')
     con = create_connection(DATABASE)
     cur = con.cursor()
@@ -213,7 +214,7 @@ def render_delete_word(id):
 
 @app.route('/action_delete_category/<id>', methods=["POST"])
 def action_delete_category(id):
-    if not is_logged_in():
+    if not is_logged_in() or not allow_edit():
         return redirect('/')
 
     con = create_connection(DATABASE)
@@ -231,7 +232,7 @@ def action_delete_category(id):
 
 @app.route('/action_delete_word/<id>', methods=["POST"])
 def action_delete_word(id):
-    if not is_logged_in():
+    if not is_logged_in() or not allow_edit():
         return redirect('/')
 
     con = create_connection(DATABASE)
@@ -249,7 +250,7 @@ def action_delete_word(id):
 
 @app.route('/addcategory', methods=["POST", "GET"])
 def render_add_category():
-    if not is_logged_in():
+    if not is_logged_in() or not allow_edit():
         return redirect('/')
     if request.method == "POST":
         print(request.form)
@@ -288,6 +289,20 @@ def is_logged_in():
     else:
         print("logged in")
         return True
+
+
+def allow_edit():
+    if not is_logged_in():
+        return False
+    email = session.get('email')
+    con = create_connection(DATABASE)
+    cur = con.cursor()
+    query = """SELECT allow_edit
+               FROM user_type
+               WHERE id = (SELECT user_type_id FROM user_details WHERE email = ?)"""
+    cur.execute(query, (email,))
+    edit_privileges = cur.fetchall()
+    return edit_privileges[0][0]
 
 
 @app.route('/signup', methods=["POST", "GET"])

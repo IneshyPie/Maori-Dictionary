@@ -5,7 +5,7 @@
 {% endblock %}
 
 {% block main %}
-    {% if logged_in %}
+    {% if logged_in and allow_edit %}
         <h2>{{ category_words[0][0] }} <strong>-</strong> <a href="\delete_category\{{ category_words[0][5] }}">Delete Category</a></h2>
     {% else %}
         <h2>{{ category_words[0][0] }}</h2>
@@ -30,7 +30,7 @@
             {% endfor %}
         </tbody>
     </table>
-    {% if logged_in %}
+    {% if logged_in and allow_edit %}
         <form id = "add_word" class="dataForm" method="post">
             <h3>Add Word to this Category</h3>
             <div class="form-group">
