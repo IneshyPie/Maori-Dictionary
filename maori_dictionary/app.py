@@ -301,7 +301,7 @@ def render_signup():
         email = request.form.get("email").strip().lower()
         password = request.form.get("password")
         password2 = request.form.get("confirm_password")
-        admin = request.form.get("admin")
+        user_type = request.form.get("user_type")
         if password != password2:
             return redirect('/signup?error=Passwords+dont+match')
         if len(password) < 8:
@@ -310,10 +310,10 @@ def render_signup():
         hashed_password = bcrypt.generate_password_hash(password)
 
         con = create_connection(DATABASE)
-        query = "INSERT INTO user_details (first_name, last_name, email, password) VALUES (?,?,?,?)"
+        query = "INSERT INTO user_details (first_name, last_name, email, password, user_type_id) VALUES (?,?,?,?,(SELECT id from user_type WHERE user_type = ?))"
         cur = con.cursor()
         try:
-            cur.execute(query, (fname, lname, email, hashed_password))
+            cur.execute(query, (fname, lname, email, hashed_password, user_type,))
         except sqlite3.IntegrityError:
             redirect('/signup?error=Email+is+already+used')
         con.commit()
