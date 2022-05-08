@@ -15,8 +15,8 @@
     padding-top: 3rem;
 }
 
-.form-label {
-    width: 30%;
+#search-label {
+    width: 0;
     float: left;
     padding: 0.3rem;
 }
@@ -164,7 +164,7 @@ textarea {
     margin-left: 0.5rem;
 }
 
-#category-submit, #signup-submit, #login-submit, #word-submit, #signup-reset {
+#category-submit, #signup-submit, #login-submit, #word-submit, #signup-reset, #search-submit {
     width: 760px;
 }
 
@@ -217,11 +217,11 @@ tr td:last-child {
 }
 
 #fulldict th:last-child {
-    width: 100%;
+    width: 20%;
 }
 
 #fulldict td:last-child {
-    width: 100%;
+    width: 20%;
 }
 
 .thumb {

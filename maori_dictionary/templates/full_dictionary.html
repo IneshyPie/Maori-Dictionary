@@ -1,17 +1,98 @@
 {% extends "base.html" %}
 
 {% block title %}
-Full Dictionary
+Search
 {% endblock %}
 
 {% block main %}
-<h1> Full Dictionary</h1>
+    <h1>Search</h1>
+    <form id = "search" class="dataForm" method="post">
+        <h3>Search</h3>
+        <div class="form-group">
+            <div class="form-label">Browse by Letter
+            <a href="/fulldict">A</a>
+            <a href="/fulldict">B</a>
+            <a href="/fulldict">C</a>
+            <a href="/fulldict">D</a>
+            <a href="/fulldict">E</a>
+            <a href="/fulldict">F</a>
+            <a href="/fulldict">G</a>
+            <a href="/fulldict">H</a>
+            <a href="/fulldict">I</a>
+            <a href="/fulldict">J</a>
+            <a href="/fulldict">K</a>
+            <a href="/fulldict">L</a>
+            <a href="/fulldict">M</a>
+            <a href="/fulldict">N</a>
+            <a href="/fulldict">O</a>
+            <a href="/fulldict">P</a>
+            <a href="/fulldict">Q</a>
+            <a href="/fulldict">R</a>
+            <a href="/fulldict">S</a>
+            <a href="/fulldict">T</a>
+            <a href="/fulldict">U</a>
+            <a href="/fulldict">V</a>
+            <a href="/fulldict">W</a>
+            <a href="/fulldict">X</a>
+            <a href="/fulldict">Y</a>
+            <a href="/fulldict">Z</a>
+            </div>
+        </div>
+        <div class="form-group">
+            <div class="form-label">Maori</div>
+            <div class="form-element"><input type="text" name = "maori" maxlength="30" required></div>
+        </div>
+        <div class="form-group">
+            <div class="form-label">English</div>
+            <div class="form-element"><input type="text" name = "english" maxlength="30" required></div>
+        </div>
+        <div class="form-group">
+            <div class="form-label">Level</div>
+                <div>
+                    <input type="radio" id="1" name="level" value="1" checked>
+                    <label for="1">1</label>
+                    <input type="radio" id="2" name="level" value="2">
+                    <label for="2">2</label>
+                    <input type="radio" id="3" name="level" value="3">
+                    <label for="3">3</label>
+                    <input type="radio" id="4" name="level" value="4">
+                    <label for="4">4</label>
+                    <input type="radio" id="5" name="level" value="5">
+                    <label for="5">5</label>
+                    <input type="radio" id="6" name="level" value="6">
+                    <label for="6">6</label>
+                    <input type="radio" id="7" name="level" value="7">
+                    <label for="7">7</label>
+                    <input type="radio" id="8" name="level" value="8">
+                    <label for="8">8</label>
+                    <input type="radio" id="9" name="level" value="9">
+                    <label for="9">9</label>
+                    <input type="radio" id="10" name="level" value="10">
+                    <label for="10">10</label>
+                </div>
+            <div class="form-group">
+                <div class="form-label">Most recent</div>
+                    <div>
+                        <input type="radio" id="1" name="Date Added" checked>
+                        <label>Yes</label>
+                        <input type="radio" id="2" name="Date Added">
+                        <label>No</label>
+                    </div>
+            </div>
+            <div class="form-group">
+                <div id = "search-submit" class="form-element"><input style="background-color: lightgray;" type="submit" name = "submit" id = "submit"></div>
+            </div>
+            <div class="form-group"></div>
+            </div>
+        </form>
  <table id = "fulldict" class="table">
         <thead>
             <tr>
                 <th><strong>Maori</strong></th>
                 <th><strong>English</strong></th>
-                <th><strong>Definition</strong></th>
+                <th><strong>Level</strong></th>
+                <th><strong>Date Added</strong></th>
+                <th><strong>Edited By</strong></th>
             </tr>
         </thead>
         <tbody>
@@ -20,12 +101,10 @@ Full Dictionary
                     <td>{{ word[1] }}</td>
                     <td>{{ word[2] }}</td>
                     <td>{{ word[3] }}</td>
+                    <td>{{ word[4] }}</td>
+                    <td>{{ word[5] }}  {{ word[6] }}</td>
                 </tr>
             {% endfor %}
         </tbody>
     </table>
-
-
-
-
 {% endblock %}

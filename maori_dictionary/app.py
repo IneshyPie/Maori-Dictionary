@@ -61,7 +61,9 @@ def render_home():
 @app.route('/fulldict')
 def render_dictionary():
     con = create_connection(DATABASE)
-    query = "SELECT * FROM dictionary"
+    query = """SELECT d.id, d.maori, d.english, d.level, d.date_added, ifnull(u.first_name, ''), ifnull(u.last_name, '')
+               FROM dictionary d
+               LEFT JOIN user_details u on d.user_id = u.id"""
     cur = con.cursor()
     cur.execute(query)
 
