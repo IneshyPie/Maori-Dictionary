@@ -59,17 +59,34 @@ def render_home():
                            allow_edit=allow_edit())
 
 
-@app.route('/fulldict')
+@app.route('/fulldict', methods=["POST", "GET"])
 def render_dictionary():
-    con = create_connection(DATABASE)
-    query = """SELECT d.id, d.maori, d.english, d.level, d.date_added, ifnull(u.first_name, ''), ifnull(u.last_name, '')
-               FROM dictionary d
-               LEFT JOIN user_details u on d.user_id = u.id"""
-    cur = con.cursor()
-    cur.execute(query)
+    if request.method == "POST":
+        english = request.form.get("english").strip()
+        con = create_connection(DATABASE)
+        cur = con.cursor()
+        sql = """SELECT d.id, d.maori, d.english, d.level, d.date_added, ifnull(u.first_name, ''), ifnull(u.last_name, '')
+                               FROM dictionary d
+                               LEFT JOIN user_details u on d.user_id = u.id
+                               WHERE english LIKE ?"""
+        try:
+            cur.execute(sql, (english, ))
+        except sqlite3.IntegrityError:
+            redirect('/?error=has+occurred')
+        dictionary_list = cur.fetchall()
+        con.commit()
+        con.close()
 
-    dictionary_list = cur.fetchall()
-    con.close()
+    else:
+        con = create_connection(DATABASE)
+        query = """SELECT d.id, d.maori, d.english, d.level, d.date_added, ifnull(u.first_name, ''), ifnull(u.last_name, '')
+                   FROM dictionary d
+                   LEFT JOIN user_details u on d.user_id = u.id"""
+        cur = con.cursor()
+        cur.execute(query)
+
+        dictionary_list = cur.fetchall()
+        con.close()
     return render_template("full_dictionary.html", dictionary_list=dictionary_list, logged_in=is_logged_in(),
                            category_list=render_category_list(), selected=[])
 
@@ -348,8 +365,10 @@ def render_signup():
         password2 = request.form.get("confirm_password")
         user_type = request.form.get("user_type")
         if password != password2:
+            error = "Passwords don't match"
             return redirect('/signup?error=Passwords+dont+match')
         if len(password) < 8:
+            error = "Passwords must be 8 characters or more"
             return redirect('/signup?error=Passwords+must+be+8+characters+or+more')
 
         hashed_password = bcrypt.generate_password_hash(password)
@@ -360,14 +379,14 @@ def render_signup():
         try:
             cur.execute(query, (fname, lname, email, hashed_password, user_type,))
         except sqlite3.IntegrityError:
-            redirect('/signup?error=Email+is+already+used')
+            error = "Email is already in use"
+            return redirect('/signup?error=Email+is+already+used')
         con.commit()
         con.close()
         return redirect('/login')
     error = request.args.get('error')
 
-    if error == None:
-        error = ""
+
 
     return render_template("signup.html", error=error, logged_in=is_logged_in(), category_list=render_category_list())
 

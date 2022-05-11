@@ -5,7 +5,6 @@ Signup
 {% endblock %}
 
 {% block main %}
-<div class="error">{{ error }}</div>
 <form class="dataForm" method="post"/>
     <div class="form-group">
         <div class="form-label">First Name:</div>
@@ -21,17 +20,16 @@ Signup
         <div class="form-label">Email:</div>
         <div class="form-element"><input type="text" name = "email" id = "email" maxlength="100" required></div>
     </div>
-
     <div class="form-group">
         <div class="form-label">Password:</div>
         <div class="form-element"><input type="password" name = "password" id = "password" maxlength="60" required></div>
     </div>
-    <div class="error">{{  error }}</div>
 
     <div class="form-group">
         <div class="form-label">Confirm password:</div>
         <div class="form-element"><input type="password" name = "confirm_password" id = "password2" maxlength="60" required></div>
     </div>
+    <div class="form-group">
     <div class="form-label"></div>
         <div>
             <input type="radio" id="1" name="user_type" value="student" checked>
@@ -39,7 +37,8 @@ Signup
             <input type="radio" id="2" name="user_type" value="teacher">
             <label>Teacher</label>
         </div>
-
+    </div>
+    <div class="error">{{ error }}</div>
     <div class="form-group">
         <div id = "signup-submit" class="form-element"><input style="background-color: lightgray;" type="submit" name = "submit" id = "submit"></div>
     </div>
