@@ -1,3 +1,4 @@
+import string
 from flask import Flask, render_template, request, redirect, session
 import sqlite3
 from sqlite3 import Error
@@ -70,7 +71,7 @@ def render_dictionary():
     dictionary_list = cur.fetchall()
     con.close()
     return render_template("full_dictionary.html", dictionary_list=dictionary_list, logged_in=is_logged_in(),
-                           category_list=render_category_list())
+                           category_list=render_category_list(), selected=[])
 
 
 @app.route('/category/<id>', methods=["POST", "GET"])
@@ -212,6 +213,33 @@ def render_delete_word(id):
     con.close()
     return render_template("delete_word.html", word_list=word_list, logged_in=is_logged_in(),
                            category_list=render_category_list())
+
+
+@app.route('/browse_by_letter/<letter>')
+def action_browse_by_letter(letter):
+    dictionary_list = None
+    print(f"line 220: {letter}")
+    if not letter is None:
+        english_search = f"{letter}%"
+        print(f"line 223: english_search : {english_search}")
+        con = create_connection(DATABASE)
+        cur = con.cursor()
+        query = """SELECT d.id, d.maori, d.english, d.level, d.date_added, ifnull(u.first_name, ''), ifnull(u.last_name, '')
+                       FROM dictionary d
+                       LEFT JOIN user_details u on d.user_id = u.id
+                       WHERE english LIKE ?"""
+        cur.execute(query, (english_search,))
+        print(f"line 230: Query = {query}")
+        dictionary_list = cur.fetchall()
+        print(f"line 232: Dictionary list = {dictionary_list}")
+        con.close()
+        selected = []
+        selected = ["" for i in range(26)]
+        print(string.ascii_lowercase.index(letter.lower()))
+        selected[string.ascii_lowercase.index(letter.lower())] = "selected"
+    print(f"line 234: Dictionary list Outside= {dictionary_list}")
+    return render_template("full_dictionary.html", dictionary_list=dictionary_list, logged_in=is_logged_in(),
+                       category_list=render_category_list(), selected=selected)
 
 
 @app.route('/action_delete_category/<id>', methods=["POST"])

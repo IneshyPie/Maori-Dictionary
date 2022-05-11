@@ -5,39 +5,40 @@ Search
 {% endblock %}
 
 {% block main %}
+
     <h1>Search</h1>
+    <div class="form-group">
+        <div class="form-label">Browse by Letter
+        <a href="/browse_by_letter/A" class="{{ selected[0] }}">A</a>
+        <a href="/browse_by_letter/B" class="{{ selected[1] }}">B</a>
+        <a href="/browse_by_letter/C" class="{{ selected[2] }}">C</a>
+        <a href="/browse_by_letter/D" class="{{ selected[3] }}">D</a>
+        <a href="/browse_by_letter/E" class="{{ selected[4] }}">E</a>
+        <a href="/browse_by_letter/F" class="{{ selected[5] }}">F</a>
+        <a href="/browse_by_letter/G" class="{{ selected[6] }}">G</a>
+        <a href="/browse_by_letter/H" class="{{ selected[7] }}">H</a>
+        <a href="/browse_by_letter/I" class="{{ selected[8] }}">I</a>
+        <a href="/browse_by_letter/J" class="{{ selected[9] }}">J</a>
+        <a href="/browse_by_letter/K" class="{{ selected[10] }}">K</a>
+        <a href="/browse_by_letter/L" class="{{ selected[11] }}">L</a>
+        <a href="/browse_by_letter/M" class="{{ selected[12] }}">M</a>
+        <a href="/browse_by_letter/N" class="{{ selected[13] }}">N</a>
+        <a href="/browse_by_letter/O" class="{{ selected[14] }}">O</a>
+        <a href="/browse_by_letter/P" class="{{ selected[15] }}">P</a>
+        <a href="/browse_by_letter/Q" class="{{ selected[16] }}">Q</a>
+        <a href="/browse_by_letter/R" class="{{ selected[17] }}">R</a>
+        <a href="/browse_by_letter/S" class="{{ selected[18] }}">S</a>
+        <a href="/browse_by_letter/T" class="{{ selected[19] }}">T</a>
+        <a href="/browse_by_letter/U" class="{{ selected[20] }}">U</a>
+        <a href="/browse_by_letter/V" class="{{ selected[21] }}">V</a>
+        <a href="/browse_by_letter/W" class="{{ selected[22] }}">W</a>
+        <a href="/browse_by_letter/X" class="{{ selected[23] }}">X</a>
+        <a href="/browse_by_letter/Y" class="{{ selected[24] }}">Y</a>
+        <a href="/browse_by_letter/Z" class="{{ selected[25] }}">Z</a>
+        </div>
+    </div>
     <form id = "search" class="dataForm" method="post">
         <h3>Search</h3>
-        <div class="form-group">
-            <div class="form-label">Browse by Letter
-            <a href="/fulldict">A</a>
-            <a href="/fulldict">B</a>
-            <a href="/fulldict">C</a>
-            <a href="/fulldict">D</a>
-            <a href="/fulldict">E</a>
-            <a href="/fulldict">F</a>
-            <a href="/fulldict">G</a>
-            <a href="/fulldict">H</a>
-            <a href="/fulldict">I</a>
-            <a href="/fulldict">J</a>
-            <a href="/fulldict">K</a>
-            <a href="/fulldict">L</a>
-            <a href="/fulldict">M</a>
-            <a href="/fulldict">N</a>
-            <a href="/fulldict">O</a>
-            <a href="/fulldict">P</a>
-            <a href="/fulldict">Q</a>
-            <a href="/fulldict">R</a>
-            <a href="/fulldict">S</a>
-            <a href="/fulldict">T</a>
-            <a href="/fulldict">U</a>
-            <a href="/fulldict">V</a>
-            <a href="/fulldict">W</a>
-            <a href="/fulldict">X</a>
-            <a href="/fulldict">Y</a>
-            <a href="/fulldict">Z</a>
-            </div>
-        </div>
         <div class="form-group">
             <div class="form-label">Maori</div>
             <div class="form-element"><input type="text" name = "maori" maxlength="30" required></div>
@@ -49,33 +50,26 @@ Search
         <div class="form-group">
             <div class="form-label">Level</div>
                 <div>
-                    <input type="radio" id="1" name="level" value="1" checked>
-                    <label for="1">1</label>
-                    <input type="radio" id="2" name="level" value="2">
-                    <label for="2">2</label>
-                    <input type="radio" id="3" name="level" value="3">
-                    <label for="3">3</label>
-                    <input type="radio" id="4" name="level" value="4">
-                    <label for="4">4</label>
-                    <input type="radio" id="5" name="level" value="5">
-                    <label for="5">5</label>
-                    <input type="radio" id="6" name="level" value="6">
-                    <label for="6">6</label>
-                    <input type="radio" id="7" name="level" value="7">
-                    <label for="7">7</label>
-                    <input type="radio" id="8" name="level" value="8">
-                    <label for="8">8</label>
-                    <input type="radio" id="9" name="level" value="9">
-                    <label for="9">9</label>
-                    <input type="radio" id="10" name="level" value="10">
-                    <label for="10">10</label>
+                  <select name="level" id="level">
+                    <option value="0">Not selected</option>
+                    <option value="1">1</option>
+                    <option value="2">2</option>
+                    <option value="3">3</option>
+                    <option value="4">4</option>
+                    <option value="5">5</option>
+                    <option value="6">6</option>
+                    <option value="7">7</option>
+                    <option value="8">8</option>
+                    <option value="9">9</option>
+                    <option value="10">10</option>
+                  </select>
                 </div>
             <div class="form-group">
                 <div class="form-label">Most recent</div>
                     <div>
-                        <input type="radio" id="1" name="Date Added" checked>
+                        <input type="radio" id="1" name="Date Added">
                         <label>Yes</label>
-                        <input type="radio" id="2" name="Date Added">
+                        <input type="radio" id="2" name="Date Added" checked>
                         <label>No</label>
                     </div>
             </div>
