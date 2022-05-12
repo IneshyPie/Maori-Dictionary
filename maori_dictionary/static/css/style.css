@@ -19,6 +19,10 @@
     background-color: white;
 }
 
+.form-label {
+    width: 30%;
+}
+
 #search-label {
     width: 0;
     float: left;
