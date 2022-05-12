@@ -38,7 +38,9 @@ Signup
             <label>Teacher</label>
         </div>
     </div>
-    <div class="error">{{ error }}</div>
+    {% if error != None %}
+        <div class="error">{{ error }}</div>
+    {% endif %}
     <div class="form-group">
         <div id = "signup-submit" class="form-element"><input style="background-color: lightgray;" type="submit" name = "submit" id = "submit"></div>
     </div>
