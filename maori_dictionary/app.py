@@ -59,8 +59,9 @@ def render_home():
                            allow_edit=allow_edit())
 
 
-@app.route('/search', methods=["POST", "GET"])
-def render_search():
+@app.route('/search/<letter>', methods=["POST", "GET"])
+def render_search(letter):
+    selected = []
     if request.method == "POST":
         english = request.form.get("english").strip()
         con = create_connection(DATABASE)
@@ -78,17 +79,28 @@ def render_search():
         con.close()
 
     else:
-        con = create_connection(DATABASE)
-        query = """SELECT d.id, d.maori, d.english, d.level, d.date_added, ifnull(u.first_name, ''), ifnull(u.last_name, '')
-                   FROM dictionary d
-                   LEFT JOIN user_details u on d.user_id = u.id"""
-        cur = con.cursor()
-        cur.execute(query)
-
-        search_results = cur.fetchall()
-        con.close()
+        search_results = []
+        print(f"line 82: {letter}")
+        if letter != "~":
+            english_search = f"{letter}%"
+            print(f"line 85: english_search : {english_search}")
+            con = create_connection(DATABASE)
+            cur = con.cursor()
+            query = """SELECT d.id, d.maori, d.english, d.level, d.date_added, ifnull(u.first_name, ''), ifnull(u.last_name, '')
+                               FROM dictionary d
+                               LEFT JOIN user_details u on d.user_id = u.id
+                               WHERE english LIKE ?"""
+            cur.execute(query, (english_search,))
+            print(f"line 93: Query = {query}")
+            search_results = cur.fetchall()
+            print(f"line 95: Dictionary list = {search_results}")
+            con.close()
+            selected = ["" for i in range(26)]
+            print(string.ascii_lowercase.index(letter.lower()))
+            selected[string.ascii_lowercase.index(letter.lower())] = "selected"
+        print(f"line 234: Dictionary list Outside= {search_results}")
     return render_template("search.html", search_results=search_results, logged_in=is_logged_in(),
-                           category_list=render_category_list(), selected=[])
+                               category_list=render_category_list(), selected=selected)
 
 
 @app.route('/category/<id>', methods=["POST", "GET"])
@@ -230,33 +242,6 @@ def render_delete_word(id):
     con.close()
     return render_template("delete_word.html", word_list=word_list, logged_in=is_logged_in(),
                            category_list=render_category_list())
-
-
-@app.route('/browse_by_letter/<letter>')
-def action_browse_by_letter(letter):
-    search_results = None
-    print(f"line 220: {letter}")
-    if not letter is None:
-        english_search = f"{letter}%"
-        print(f"line 223: english_search : {english_search}")
-        con = create_connection(DATABASE)
-        cur = con.cursor()
-        query = """SELECT d.id, d.maori, d.english, d.level, d.date_added, ifnull(u.first_name, ''), ifnull(u.last_name, '')
-                       FROM dictionary d
-                       LEFT JOIN user_details u on d.user_id = u.id
-                       WHERE english LIKE ?"""
-        cur.execute(query, (english_search,))
-        print(f"line 230: Query = {query}")
-        search_results = cur.fetchall()
-        print(f"line 232: Dictionary list = {search_results}")
-        con.close()
-        selected = []
-        selected = ["" for i in range(26)]
-        print(string.ascii_lowercase.index(letter.lower()))
-        selected[string.ascii_lowercase.index(letter.lower())] = "selected"
-    print(f"line 234: Dictionary list Outside= {search_results}")
-    return render_template("search.html", search_results=search_results, logged_in=is_logged_in(),
-                       category_list=render_category_list(), selected=selected)
 
 
 @app.route('/action_delete_category/<id>', methods=["POST"])
