@@ -59,19 +59,75 @@ def render_home():
                            allow_edit=allow_edit())
 
 
+#Example of the sql
+#SELECT d.id, d.maori, d.english, d.level, d.date_added, ifnull(u.first_name, ''), ifnull(u.last_name, '')
+#FROM dictionary d
+#LEFT JOIN user_details u on d.user_id = u.id
+#WHERE
+#    maori LIKE '%'
+#    AND
+#    english LIKE '%'
+#    AND
+#    level = 5
+#ORDER BY date_added DESC LIMIT 20
 @app.route('/search/<letter>', methods=["POST", "GET"])
 def render_search(letter):
     selected = []
     if request.method == "POST":
+        maori = request.form.get("maori").strip()
         english = request.form.get("english").strip()
+        level = request.form.get("level").strip()
+        most_recent = request.form.get("Date-Added").strip()
+        print(f"maori: {maori}")
+        print(f"english: {english}")
+        print(f"level: {level}")
+        print(f"most_recent: {most_recent}")
+        where = ""
+        sql_maori = ""
+        sql_english = ""
+        sql_level = ""
+        order_and_limit = ""
+        if  maori != "" or english != "" or level != "0":
+            where = "WHERE"
+            if maori != "":
+                print("maori != """)
+            if english != "":
+                print("english != """)
+            if level == "0":
+                print("level == 0")
+            if maori != "" and english != "" and level == "0":
+                sql_maori = f"maori LIKE '{maori}%' AND "
+                sql_english = f"english LIKE '{english}%'"
+                print(f"sql maori in first if {sql_maori} and sql english {sql_english}")
+            if maori != "" and english == "" and level != "0":
+                sql_maori = f"maori LIKE '{maori}%' AND "
+                sql_level = f"level = {level}"
+            if maori == "" and english != "" and level != "0":
+                sql_english = f"english LIKE '{english}%' AND "
+                sql_level = f"level = {level}"
+            if maori != "" and english == "" and level == "0":
+                sql_maori = f"maori LIKE '{maori}%'"
+            if maori == "" and english != "" and level == "0":
+                sql_english = f"english LIKE '{english}%'"
+            if maori == "" and english == "" and level != "0":
+                sql_level = f"level = {level}"
+            if maori != "" and english != "" and level != "0":
+                sql_maori = f"maori LIKE '{maori}%' AND "
+                sql_english = f"english LIKE '{english}%' AND"
+                sql_level = f"level = {level}"
+        if most_recent == "1":
+            order_and_limit = "ORDER BY date_added DESC LIMIT 20"
+        print(f"where: {where}")
+        print(f"sql_maori: {sql_maori}")
+        print(f"sql_english: {sql_english}")
+        print(f"sql_level: {sql_level}")
+        print(f"order_and_limit: {order_and_limit}")
         con = create_connection(DATABASE)
         cur = con.cursor()
-        sql = """SELECT d.id, d.maori, d.english, d.level, d.date_added, ifnull(u.first_name, ''), ifnull(u.last_name, '')
-                               FROM dictionary d
-                               LEFT JOIN user_details u on d.user_id = u.id
-                               WHERE english LIKE ?"""
+        sql = f"SELECT d.id, d.maori, d.english, d.level, d.date_added, ifnull(u.first_name, ''), ifnull(u.last_name, '') FROM dictionary d LEFT JOIN user_details u on d.user_id = u.id {where} {sql_maori} {sql_english} {sql_level} {order_and_limit}"
+        print(sql)
         try:
-            cur.execute(sql, (english, ))
+            cur.execute(sql)
         except sqlite3.IntegrityError:
             redirect('/?error=has+occurred')
         search_results = cur.fetchall()
