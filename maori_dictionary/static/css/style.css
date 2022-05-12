@@ -228,11 +228,11 @@ tr td:last-child {
     width: 90px;
 }
 
-#fulldict th:last-child {
+#search th:last-child {
     width: 20%;
 }
 
-#fulldict td:last-child {
+#search td:last-child {
     width: 20%;
 }
 

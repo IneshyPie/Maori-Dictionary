@@ -59,8 +59,8 @@ def render_home():
                            allow_edit=allow_edit())
 
 
-@app.route('/fulldict', methods=["POST", "GET"])
-def render_dictionary():
+@app.route('/search', methods=["POST", "GET"])
+def render_search():
     if request.method == "POST":
         english = request.form.get("english").strip()
         con = create_connection(DATABASE)
@@ -73,7 +73,7 @@ def render_dictionary():
             cur.execute(sql, (english, ))
         except sqlite3.IntegrityError:
             redirect('/?error=has+occurred')
-        dictionary_list = cur.fetchall()
+        search_results = cur.fetchall()
         con.commit()
         con.close()
 
@@ -85,9 +85,9 @@ def render_dictionary():
         cur = con.cursor()
         cur.execute(query)
 
-        dictionary_list = cur.fetchall()
+        search_results = cur.fetchall()
         con.close()
-    return render_template("full_dictionary.html", dictionary_list=dictionary_list, logged_in=is_logged_in(),
+    return render_template("search.html", search_results=search_results, logged_in=is_logged_in(),
                            category_list=render_category_list(), selected=[])
 
 
@@ -234,7 +234,7 @@ def render_delete_word(id):
 
 @app.route('/browse_by_letter/<letter>')
 def action_browse_by_letter(letter):
-    dictionary_list = None
+    search_results = None
     print(f"line 220: {letter}")
     if not letter is None:
         english_search = f"{letter}%"
@@ -247,15 +247,15 @@ def action_browse_by_letter(letter):
                        WHERE english LIKE ?"""
         cur.execute(query, (english_search,))
         print(f"line 230: Query = {query}")
-        dictionary_list = cur.fetchall()
-        print(f"line 232: Dictionary list = {dictionary_list}")
+        search_results = cur.fetchall()
+        print(f"line 232: Dictionary list = {search_results}")
         con.close()
         selected = []
         selected = ["" for i in range(26)]
         print(string.ascii_lowercase.index(letter.lower()))
         selected[string.ascii_lowercase.index(letter.lower())] = "selected"
-    print(f"line 234: Dictionary list Outside= {dictionary_list}")
-    return render_template("full_dictionary.html", dictionary_list=dictionary_list, logged_in=is_logged_in(),
+    print(f"line 234: Dictionary list Outside= {search_results}")
+    return render_template("search.html", search_results=search_results, logged_in=is_logged_in(),
                        category_list=render_category_list(), selected=selected)
 
 

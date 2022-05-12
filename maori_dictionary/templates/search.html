@@ -79,7 +79,7 @@ Search
             <div class="form-group"></div>
             </div>
         </form>
- <table id = "fulldict" class="table">
+ <table id = "search" class="table">
         <thead>
             <tr>
                 <th><strong>Maori</strong></th>
@@ -90,7 +90,7 @@ Search
             </tr>
         </thead>
         <tbody>
-            {% for word in dictionary_list %}
+            {% for word in search_results %}
                 <tr>
                     <td>{{ word[1] }}</td>
                     <td>{{ word[2] }}</td>
