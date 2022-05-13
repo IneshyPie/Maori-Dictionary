@@ -78,59 +78,240 @@ def render_search(letter):
         english = request.form.get("english").strip()
         level = request.form.get("level").strip()
         most_recent = request.form.get("Date-Added").strip()
-        print(f"maori: {maori}")
-        print(f"english: {english}")
-        print(f"level: {level}")
-        print(f"most_recent: {most_recent}")
-        where = ""
+        print(f"form data: maori: {maori}, english: {english}, level: {level}, most_recent: {most_recent}")
         sql_maori = ""
         sql_english = ""
         sql_level = ""
-        order_and_limit = ""
-        if  maori != "" or english != "" or level != "0":
-            where = "WHERE"
-            if maori != "":
-                print("maori != """)
-            if english != "":
-                print("english != """)
-            if level == "0":
-                print("level == 0")
-            if maori != "" and english != "" and level == "0":
-                sql_maori = f"maori LIKE '{maori}%' AND "
-                sql_english = f"english LIKE '{english}%'"
-                print(f"sql maori in first if {sql_maori} and sql english {sql_english}")
-            if maori != "" and english == "" and level != "0":
-                sql_maori = f"maori LIKE '{maori}%' AND "
-                sql_level = f"level = {level}"
-            if maori == "" and english != "" and level != "0":
-                sql_english = f"english LIKE '{english}%' AND "
-                sql_level = f"level = {level}"
-            if maori != "" and english == "" and level == "0":
-                sql_maori = f"maori LIKE '{maori}%'"
-            if maori == "" and english != "" and level == "0":
-                sql_english = f"english LIKE '{english}%'"
-            if maori == "" and english == "" and level != "0":
-                sql_level = f"level = {level}"
-            if maori != "" and english != "" and level != "0":
-                sql_maori = f"maori LIKE '{maori}%' AND "
-                sql_english = f"english LIKE '{english}%' AND"
-                sql_level = f"level = {level}"
-        if most_recent == "1":
-            order_and_limit = "ORDER BY date_added DESC LIMIT 20"
-        print(f"where: {where}")
-        print(f"sql_maori: {sql_maori}")
-        print(f"sql_english: {sql_english}")
-        print(f"sql_level: {sql_level}")
-        print(f"order_and_limit: {order_and_limit}")
         con = create_connection(DATABASE)
         cur = con.cursor()
-        sql = f"SELECT d.id, d.maori, d.english, d.level, d.date_added, ifnull(u.first_name, ''), ifnull(u.last_name, '') FROM dictionary d LEFT JOIN user_details u on d.user_id = u.id {where} {sql_maori} {sql_english} {sql_level} {order_and_limit}"
-        print(sql)
-        try:
-            cur.execute(sql)
-        except sqlite3.IntegrityError:
-            redirect('/?error=has+occurred')
+        if maori != "" or english != "" or level != "0" and most_recent == "1":
+            if maori != "" and english != "" and level == "0":
+                sql_maori = f"{maori}%"
+                sql_english = f"{english}%"
+                sql = """SELECT d.id, d.maori, d.english, d.level, d.date_added, ifnull(u.first_name, ''), ifnull(u.last_name, '')
+                         FROM dictionary d
+                         LEFT JOIN user_details u on d.user_id = u.id
+                         WHERE 
+                         maori LIKE ? AND 
+                         english LIKE ?
+                         ORDER BY date_added DESC LIMIT 20
+                         """
+                print(f"case 1 parms: {sql_maori}, {sql_english}")
+                try:
+                    cur.execute(sql, (sql_maori, sql_english,))
+                except sqlite3.IntegrityError:
+                    redirect('/?error=has+occurred')
+            if maori != "" and english == "" and level != "0":
+                sql_maori = f"{maori}%"
+                sql_level = f"{level}"
+                sql = """SELECT d.id, d.maori, d.english, d.level, d.date_added, ifnull(u.first_name, ''), ifnull(u.last_name, '')
+                         FROM dictionary d
+                         LEFT JOIN user_details u on d.user_id = u.id
+                         WHERE 
+                         maori LIKE ? AND 
+                         level = ?
+                         ORDER BY date_added DESC LIMIT 20
+                         """
+                print(f"case 2 parms: {sql_maori}, {sql_level}")
+                try:
+                    cur.execute(sql, (sql_maori, sql_level,))
+                except sqlite3.IntegrityError:
+                    redirect('/?error=has+occurred')
+            if maori == "" and english != "" and level != "0":
+                sql_english = f"{english}%"
+                sql_level = f"{level}"
+                sql = """SELECT d.id, d.maori, d.english, d.level, d.date_added, ifnull(u.first_name, ''), ifnull(u.last_name, '')
+                         FROM dictionary d
+                         LEFT JOIN user_details u on d.user_id = u.id
+                         WHERE 
+                         english LIKE ? AND 
+                         level = ?
+                         ORDER BY date_added DESC LIMIT 20
+                         """
+                print(f"case 3 parms: {sql_english}, {sql_level}")
+                try:
+                    cur.execute(sql, (sql_english, sql_level,))
+                except sqlite3.IntegrityError:
+                    redirect('/?error=has+occurred')
+            if maori != "" and english == "" and level == "0":
+                sql_maori = f"{maori}%"
+                sql = """SELECT d.id, d.maori, d.english, d.level, d.date_added, ifnull(u.first_name, ''), ifnull(u.last_name, '')
+                         FROM dictionary d
+                         LEFT JOIN user_details u on d.user_id = u.id
+                         WHERE 
+                         maori LIKE ?
+                         ORDER BY date_added DESC LIMIT 20 
+                         """
+                print(f"case 4 parms: {sql_maori}")
+                try:
+                    cur.execute(sql, (sql_maori,))
+                except sqlite3.IntegrityError:
+                    redirect('/?error=has+occurred')
+            if maori == "" and english != "" and level == "0":
+                sql_english = f"{english}%"
+                sql = """SELECT d.id, d.maori, d.english, d.level, d.date_added, ifnull(u.first_name, ''), ifnull(u.last_name, '')
+                         FROM dictionary d
+                         LEFT JOIN user_details u on d.user_id = u.id
+                         WHERE 
+                         english LIKE ?
+                         ORDER BY date_added DESC LIMIT 20
+                         """
+                print(f"case 5 parms: {sql_english}")
+                try:
+                    cur.execute(sql, (sql_english,))
+                except sqlite3.IntegrityError:
+                    redirect('/?error=has+occurred')
+            if maori == "" and english == "" and level != "0":
+                sql_level = f"{level}"
+                sql = """SELECT d.id, d.maori, d.english, d.level, d.date_added, ifnull(u.first_name, ''), ifnull(u.last_name, '')
+                         FROM dictionary d
+                         LEFT JOIN user_details u on d.user_id = u.id
+                         WHERE 
+                         level = ?
+                         ORDER BY date_added DESC LIMIT 20
+                         """
+                print(f"case 6 parms: {sql_level}")
+                try:
+                    cur.execute(sql, (sql_level,))
+                except sqlite3.IntegrityError:
+                    redirect('/?error=has+occurred')
+            if maori != "" and english != "" and level != "0":
+                sql_maori = f"{maori}%"
+                sql_english = f"{english}%"
+                sql_level = f"{level}"
+                sql = """SELECT d.id, d.maori, d.english, d.level, d.date_added, ifnull(u.first_name, ''), ifnull(u.last_name, '')
+                                         FROM dictionary d
+                                         LEFT JOIN user_details u on d.user_id = u.id
+                                         WHERE 
+                                         maori LIKE ? AND
+                                         english LIKE ? AND
+                                         level = ?
+                                         ORDER BY date_added DESC LIMIT 20
+                                         """
+                print(f"case 7 parms: {sql_maori}, {sql_english}, {sql_level}")
+                try:
+                    cur.execute(sql, (sql_maori, sql_english, sql_level,))
+                except sqlite3.IntegrityError:
+                    redirect('/?error=has+occurred')
+        elif maori != "" or english != "" or level != "0" and most_recent == "0":
+            if maori != "" and english != "" and level == "0":
+                sql_maori = f"{maori}%"
+                sql_english = f"{english}%"
+                sql = """SELECT d.id, d.maori, d.english, d.level, d.date_added, ifnull(u.first_name, ''), ifnull(u.last_name, '')
+                         FROM dictionary d
+                         LEFT JOIN user_details u on d.user_id = u.id
+                         WHERE 
+                         maori LIKE ? AND 
+                         english LIKE ?
+                         """
+                print(f"case 1 parms: {sql_maori}, {sql_english}")
+                try:
+                    cur.execute(sql, (sql_maori, sql_english,))
+                except sqlite3.IntegrityError:
+                    redirect('/?error=has+occurred')
+            if maori != "" and english == "" and level != "0":
+                sql_maori = f"{maori}%"
+                sql_level = f"{level}"
+                sql = """SELECT d.id, d.maori, d.english, d.level, d.date_added, ifnull(u.first_name, ''), ifnull(u.last_name, '')
+                         FROM dictionary d
+                         LEFT JOIN user_details u on d.user_id = u.id
+                         WHERE 
+                         maori LIKE ? AND 
+                         level = ?
+                         """
+                print(f"case 2 parms: {sql_maori}, {sql_level}")
+                try:
+                    cur.execute(sql, (sql_maori, sql_level,))
+                except sqlite3.IntegrityError:
+                    redirect('/?error=has+occurred')
+            if maori == "" and english != "" and level != "0":
+                sql_english = f"{english}%"
+                sql_level = f"{level}"
+                sql = """SELECT d.id, d.maori, d.english, d.level, d.date_added, ifnull(u.first_name, ''), ifnull(u.last_name, '')
+                         FROM dictionary d
+                         LEFT JOIN user_details u on d.user_id = u.id
+                         WHERE 
+                         english LIKE ? AND 
+                         level = ?
+                         """
+                print(f"case 3 parms: {sql_english}, {sql_level}")
+                try:
+                    cur.execute(sql, (sql_english, sql_level,))
+                except sqlite3.IntegrityError:
+                    redirect('/?error=has+occurred')
+            if maori != "" and english == "" and level == "0":
+                sql_maori = f"{maori}%"
+                sql = """SELECT d.id, d.maori, d.english, d.level, d.date_added, ifnull(u.first_name, ''), ifnull(u.last_name, '')
+                         FROM dictionary d
+                         LEFT JOIN user_details u on d.user_id = u.id
+                         WHERE 
+                         maori LIKE ? 
+                         """
+                print(f"case 4 parms: {sql_maori}")
+                try:
+                    cur.execute(sql, (sql_maori,))
+                except sqlite3.IntegrityError:
+                    redirect('/?error=has+occurred')
+            if maori == "" and english != "" and level == "0":
+                sql_english = f"{english}%"
+                sql = """SELECT d.id, d.maori, d.english, d.level, d.date_added, ifnull(u.first_name, ''), ifnull(u.last_name, '')
+                         FROM dictionary d
+                         LEFT JOIN user_details u on d.user_id = u.id
+                         WHERE 
+                         english LIKE ?
+                         """
+                print(f"case 5 parms: {sql_english}")
+                try:
+                    cur.execute(sql, (sql_english,))
+                except sqlite3.IntegrityError:
+                    redirect('/?error=has+occurred')
+            if maori == "" and english == "" and level != "0":
+                sql_level = f"{level}"
+                sql = """SELECT d.id, d.maori, d.english, d.level, d.date_added, ifnull(u.first_name, ''), ifnull(u.last_name, '')
+                         FROM dictionary d
+                         LEFT JOIN user_details u on d.user_id = u.id
+                         WHERE 
+                         level = ?
+                         """
+                print(f"case 6 parms: {sql_level}")
+                try:
+                    cur.execute(sql, (sql_level,))
+                except sqlite3.IntegrityError:
+                    redirect('/?error=has+occurred')
+            if maori != "" and english != "" and level != "0":
+                sql_maori = f"{maori}%"
+                sql_english = f"{english}%"
+                sql_level = f"{level}"
+                sql = """SELECT d.id, d.maori, d.english, d.level, d.date_added, ifnull(u.first_name, ''), ifnull(u.last_name, '')
+                                         FROM dictionary d
+                                         LEFT JOIN user_details u on d.user_id = u.id
+                                         WHERE 
+                                         maori LIKE ? AND
+                                         english LIKE ? AND
+                                         level = ?
+                                         """
+                print(f"case 7 parms: {sql_maori}, {sql_english}, {sql_level}")
+                try:
+                    cur.execute(sql, (sql_maori, sql_english, sql_level,))
+                except sqlite3.IntegrityError:
+                    redirect('/?error=has+occurred')
+        elif most_recent == "1":
+            sql = """SELECT d.id, d.maori, d.english, d.level, d.date_added, ifnull(u.first_name, ''), ifnull(u.last_name, '')
+                                     FROM dictionary d
+                                     LEFT JOIN user_details u on d.user_id = u.id
+                                     ORDER BY date_added DESC LIMIT 20
+                                     """
+            try:
+                cur.execute(sql)
+            except sqlite3.IntegrityError:
+                redirect('/?error=has+occurred')
+            print(f"case 8 parms: {sql_maori}, {sql_english}, {sql_level}, {most_recent}")
+        else:
+            return render_template("search.html", search_results=[], logged_in=is_logged_in(),
+                                   category_list=render_category_list(), selected=selected)
+
         search_results = cur.fetchall()
+        print(f"Search results: {search_results}")
         con.commit()
         con.close()
 
