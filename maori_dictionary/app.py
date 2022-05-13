@@ -3,6 +3,8 @@ from flask import Flask, render_template, request, redirect, session
 import sqlite3
 from sqlite3 import Error
 from flask_bcrypt import Bcrypt
+import glob
+import os
 from datetime import datetime
 import smtplib
 import ssl
@@ -39,25 +41,18 @@ def render_category_list():
 
 
 def get_image_filename(english_name):
-    path = "static\\images\\"
-    file_name = f"{english_name}.jpg"
-    path_file = f"{path}{file_name}"
+    path_file = f"static\\images\\{english_name}.*"
     print(path_file)
-    if not Path(path_file).is_file():
-        print("inside jpg if")
-        file_name = f"{english_name}.png"
-        path_file = f"{path}{file_name}"
-        if not Path(path_file).is_file():
-            print("inside png if")
-            return "noimage.png"
-    return file_name
-
+    listing = glob.glob(path_file)
+    for filename in listing:
+        print(filename)
+        return os.path.basename(filename)
+    return "noimage.png"
 
 @app.route('/')
 def render_home():
     return render_template("home.html", category_list=render_category_list(), logged_in=is_logged_in(),
                            allow_edit=allow_edit())
-
 
 #Example of the sql
 #SELECT d.id, d.maori, d.english, d.level, d.date_added, ifnull(u.first_name, ''), ifnull(u.last_name, '')
