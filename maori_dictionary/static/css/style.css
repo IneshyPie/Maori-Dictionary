@@ -15,6 +15,13 @@
     padding-top: 3rem;
 }
 
+select {
+    border: 2px solid black;
+    border-radius: 5px;
+    height: 25px;
+    width: 15%;
+}
+
 .selected {
     background-color: white;
 }
@@ -34,7 +41,7 @@
 }
 
 #add_category_error {
-    padding-top: 50px;
+    padding-top: 40px;
     padding-bottom: 0;
 }
 

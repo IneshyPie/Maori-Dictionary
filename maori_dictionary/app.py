@@ -49,16 +49,19 @@ def get_image_filename(english_name):
         return os.path.basename(filename)
     return "noimage.png"
 
+
 def get_image_filenames(words):
     image_names = []
     for word in words:
         image_names.append(get_image_filename(word[2]))
     return image_names
 
+
 @app.route('/')
 def render_home():
     return render_template("home.html", category_list=render_category_list(), logged_in=is_logged_in(),
                            allow_edit=allow_edit())
+
 
 #Example of the sql
 #SELECT d.id, d.maori, d.english, d.level, d.date_added, ifnull(u.first_name, ''), ifnull(u.last_name, '')
@@ -369,7 +372,7 @@ def render_category(id):
             try:
                 cur.execute(sql, (maori, english, description, level, id, email,))
             except sqlite3.IntegrityError:
-                redirect('/?error=Email+is+already+used')
+                redirect(f"/category/{id}?error=The+word+{maori}+already+exists")
             con.commit()
             con.close()
             return redirect(f'/category/{id}')
@@ -411,14 +414,18 @@ def render_word(id):
 
         con = create_connection(DATABASE)
         cur = con.cursor()
-        query = "SELECT id FROM dictionary WHERE maori = ?"
-        cur.execute(query, (maori,))
+        query = """SELECT id FROM dictionary 
+                   WHERE maori = ?
+                   AND (
+                        id <> ?
+                        )"""
+        cur.execute(query, (maori, id,))
         maori_id = cur.fetchall()
         print(f"line 417 maori_id = {maori_id}")
         if len(maori_id) != 0:
             con.commit()
             con.close()
-            return redirect(f"/word/{id}?error=The+word+{maori}+already+exists")
+            return redirect(f"/word/{id}?error=The+word+'{maori}'+already+exists")
         else:
             cur = con.cursor()
             sql = """UPDATE dictionary
@@ -673,15 +680,19 @@ def render_login():
             return redirect('/login?error=Email+invalid+or+password+incorrect')
 
         if not bcrypt.check_password_hash(db_password, password):
-            return redirect(request.referrer + '?error=Email+invalid+or+Password+incorrect')
+            return redirect('/login?error=Email+invalid+or+Password+incorrect')
 
         session['email'] = email
         session['user_id'] = user_id
         session['first_name'] = first_name
         print(session)
         return redirect('/')
+    error = request.args.get('error')
 
-    return render_template("login.html", logged_in=is_logged_in(), category_list=render_category_list())
+    if error == None:
+        error = ""
+
+    return render_template("login.html", logged_in=is_logged_in(), category_list=render_category_list(), error=error)
 
 
 @app.route('/logout')
@@ -689,7 +700,7 @@ def logout():
     print(list(session.keys()))
     [session.pop(key) for key in list(session.keys())]
     print(list(session.keys()))
-    return redirect(request.referrer + '?message=see+you+later')
+    return redirect('/')
 
 
 if __name__ == '__main__':
