@@ -49,6 +49,12 @@ def get_image_filename(english_name):
         return os.path.basename(filename)
     return "noimage.png"
 
+def get_image_filenames(words):
+    image_names = []
+    for word in words:
+        image_names.append(get_image_filename(word[2]))
+    return image_names
+
 @app.route('/')
 def render_home():
     return render_template("home.html", category_list=render_category_list(), logged_in=is_logged_in(),
@@ -344,14 +350,13 @@ def render_category(id):
         description = request.form.get("description").strip()
         level = request.form.get("level")
         email = session.get('email')
-        image_name = get_image_filename(english)
 
         con = create_connection(DATABASE)
-        sql = """INSERT INTO dictionary (maori, english, description, level, category_id, image_name, date_added, user_id)
-                   VALUES (?, ?, ?, ?, ?, ?, date(), (SELECT id FROM user_details WHERE email = ?))"""
+        sql = """INSERT INTO dictionary (maori, english, description, level, category_id, date_added, user_id)
+                   VALUES (?, ?, ?, ?, ?, date(), (SELECT id FROM user_details WHERE email = ?))"""
         cur = con.cursor()
         try:
-            cur.execute(sql, (maori, english, description, level, id, image_name, email,))
+            cur.execute(sql, (maori, english, description, level, id, email,))
         except sqlite3.IntegrityError:
             redirect('/?error=Email+is+already+used')
         con.commit()
@@ -360,7 +365,7 @@ def render_category(id):
     else:
         con = create_connection(DATABASE)
         cur = con.cursor()
-        query = """SELECT c.category_name, d.maori, d.english, d.image_name, d.id, c.id
+        query = """SELECT c.category_name, d.maori, d.english, d.id, c.id
                    FROM category c
                    LEFT JOIN dictionary d on c.id = d.category_id
                    WHERE c.id = ?"""
@@ -368,10 +373,14 @@ def render_category(id):
         category_words = cur.fetchall()
         print(category_words)
         con.close()
-        if category_words[0][4] is None:
+
+        if category_words[0][3] is None:
             category_words_parm = []
         category_words_parm = category_words
+        image_names = get_image_filenames(category_words_parm)
+        print (f"Line 381 : image_names = {image_names}")
         return render_template("category.html", category_words=category_words_parm, logged_in=is_logged_in(),
+                               image_names=image_names,
                                category_list=render_category_list(), allow_edit=allow_edit())
 
 
@@ -384,7 +393,6 @@ def render_word(id):
         description = request.form.get("description").strip()
         level = request.form.get("level")
         email = session.get('email')
-        image_name = get_image_filename(english)
 
         con = create_connection(DATABASE)
         sql = """UPDATE dictionary
@@ -392,7 +400,6 @@ def render_word(id):
                     english = ?,
                     description = ?,
                     level = ?,
-                    image_name = ?,
                     user_id = (SELECT id FROM user_details WHERE email = ?),
                     date_added = date()
                  WHERE id = ?
@@ -400,13 +407,12 @@ def render_word(id):
                         maori <> ? OR
                         english <> ? OR
                         description <> ? OR
-                        level <> ? OR
-                        image_name <> ?
+                        level <> ?
                      )"""
         cur = con.cursor()
         try:
-            cur.execute(sql, (maori, english, description, level, image_name, email, id, maori, english, description, level, image_name,))
-            print(f"{maori},{english},{description},{level},{image_name}")
+            cur.execute(sql, (maori, english, description, level, email, id, maori, english, description, level,))
+            print(f"{maori},{english},{description},{level}")
         except sqlite3.IntegrityError:
             redirect('/?error=Update+failed+try+again+later')
         con.commit()
@@ -416,7 +422,7 @@ def render_word(id):
 
     con = create_connection(DATABASE)
     cur = con.cursor()
-    query = """SELECT d.id, d.maori, d.english, d.description, d.level, d.image_name, d.date_added, ifnull(u.first_name, ''), ifnull(u.last_name, '')
+    query = """SELECT d.id, d.maori, d.english, d.description, d.level, d.date_added, ifnull(u.first_name, ''), ifnull(u.last_name, '')
                FROM dictionary d
                LEFT JOIN user_details u on d.user_id = u.id
                WHERE d.id = ?"""
@@ -433,8 +439,14 @@ def render_word(id):
     print(word_details)
     print(word_details[0][4])
     con.close()
-    return render_template("word.html", word_details=word_details, logged_in=is_logged_in(), checked=checked,
-                           category_list=render_category_list(), allow_edit=allow_edit())
+
+    return render_template("word.html",
+                           word_details=word_details,
+                           logged_in=is_logged_in(),
+                           image_name=get_image_filename(word_details[0][2]),
+                           checked=checked,
+                           category_list=render_category_list(),
+                           allow_edit=allow_edit())
 
 
 @app.route('/delete_category/<id>')
@@ -443,7 +455,7 @@ def render_delete_category(id):
         return redirect('/')
     con = create_connection(DATABASE)
     cur = con.cursor()
-    query = """SELECT c.category_name, d.maori, d.english, d.image_name, d.id, c.id
+    query = """SELECT c.category_name, d.maori, d.english, d.id, c.id
                    FROM category c
                    LEFT JOIN dictionary d on c.id = d.category_id
                    WHERE c.id = ?"""
@@ -454,8 +466,9 @@ def render_delete_category(id):
     if category_words[0][4] is None:
         category_words_parm = []
     category_words_parm = category_words
+    image_names = get_image_filenames(category_words_parm)
     return render_template("delete_category.html", category_words=category_words_parm, logged_in=is_logged_in(),
-                           category_list=render_category_list())
+                           image_names=image_names, category_list=render_category_list())
 
 
 @app.route('/delete_word/<id>')
@@ -464,7 +477,7 @@ def render_delete_word(id):
         return redirect('/')
     con = create_connection(DATABASE)
     cur = con.cursor()
-    query = """SELECT d.id, d.maori, d.english, d.description, d.level, d.image_name, d.date_added, ifnull(u.first_name, ''), ifnull(u.last_name, '')
+    query = """SELECT d.id, d.maori, d.english, d.description, d.level, d.date_added, ifnull(u.first_name, ''), ifnull(u.last_name, '')
                FROM dictionary d
                LEFT JOIN user_details u on d.user_id = u.id
                WHERE d.id = ?"""
@@ -473,6 +486,7 @@ def render_delete_word(id):
     print(word_list)
     con.close()
     return render_template("delete_word.html", word_list=word_list, logged_in=is_logged_in(),
+                           image_name=get_image_filename(word_list[0][2]),
                            category_list=render_category_list())
 
 

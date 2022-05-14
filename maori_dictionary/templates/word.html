@@ -4,9 +4,9 @@
     {% set english = word_details[0][2] %}
     {% set description = word_details[0][3] %}
     {% set level = word_details[0][4] %}
-    {% set image = word_details[0][5] %}
-    {% set date_added = word_details[0][6] %}
-    {% set edited_by = word_details[0][7] + ' ' + word_details[0][8] %}
+    {% set image = image_name %}
+    {% set date_added = word_details[0][5] %}
+    {% set edited_by = word_details[0][6] + ' ' + word_details[0][7] %}
 {% block title %}
     Maori Dictionary Word {{ maori }}
 {% endblock %}

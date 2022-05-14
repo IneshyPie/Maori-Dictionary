@@ -6,7 +6,7 @@
 
 {% block main %}
     {% if logged_in and allow_edit %}
-        <h2>{{ category_words[0][0] }} <strong>-</strong> <a href="\delete_category\{{ category_words[0][5] }}">Delete Category</a></h2>
+        <h2>{{ category_words[0][0] }} <strong>-</strong> <a href="\delete_category\{{ category_words[0][4] }}">Delete Category</a></h2>
     {% else %}
         <h2>{{ category_words[0][0] }}</h2>
     {% endif %}
@@ -22,9 +22,9 @@
             {% for word in category_words %}
                 <tr>
                     {% if word[1] != None %}
-                        <td><a href="\word\{{ word[4] }}">{{ word[1] }}</a></td>
+                        <td><a href="\word\{{ word[3] }}">{{ word[1] }}</a></td>
                         <td>{{ word[2] }}</td>
-                        <td><img class="thumb" src= "../static/images/{{ word[3] }}"></td>
+                        <td><img class="thumb" src= "../static/images/{{ image_names[loop.index0]}}"></td>
                     {% endif %}
                 </tr>
             {% endfor %}
