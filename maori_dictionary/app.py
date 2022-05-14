@@ -320,15 +320,15 @@ def render_search(letter):
         search_results = []
         print(f"line 82: {letter}")
         if letter != "~":
-            english_search = f"{letter}%"
-            print(f"line 85: english_search : {english_search}")
+            maori_search = f"{letter}%"
+            print(f"line 85: maori_search : {maori_search}")
             con = create_connection(DATABASE)
             cur = con.cursor()
             query = """SELECT d.id, d.maori, d.english, d.level, d.date_added, ifnull(u.first_name, ''), ifnull(u.last_name, '')
                                FROM dictionary d
                                LEFT JOIN user_details u on d.user_id = u.id
-                               WHERE english LIKE ?"""
-            cur.execute(query, (english_search,))
+                               WHERE maori LIKE ?"""
+            cur.execute(query, (maori_search,))
             print(f"line 93: Query = {query}")
             search_results = cur.fetchall()
             print(f"line 95: Dictionary list = {search_results}")
