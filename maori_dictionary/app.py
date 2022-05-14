@@ -337,8 +337,9 @@ def render_search(letter):
             print(string.ascii_lowercase.index(letter.lower()))
             selected[string.ascii_lowercase.index(letter.lower())] = "selected"
         print(f"line 234: Dictionary list Outside= {search_results}")
+        print(f"line 340: is_logged_in(): {is_logged_in()}")
     return render_template("search.html", search_results=search_results, logged_in=is_logged_in(),
-                               category_list=render_category_list(), selected=selected)
+                               category_list=render_category_list(), selected=selected, allow_edit=allow_edit())
 
 
 @app.route('/category/<id>', methods=["POST", "GET"])
@@ -557,7 +558,8 @@ def render_add_category():
     if error == None:
         error = ""
 
-    return render_template("add_category.html", logged_in=is_logged_in(), category_list=render_category_list())
+    return render_template("add_category.html", logged_in=is_logged_in(), category_list=render_category_list(),
+                            allow_edit=allow_edit())
 
 
 def is_logged_in():
