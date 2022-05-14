@@ -353,16 +353,26 @@ def render_category(id):
         email = session.get('email')
 
         con = create_connection(DATABASE)
-        sql = """INSERT INTO dictionary (maori, english, description, level, category_id, date_added, user_id)
-                   VALUES (?, ?, ?, ?, ?, date(), (SELECT id FROM user_details WHERE email = ?))"""
         cur = con.cursor()
-        try:
-            cur.execute(sql, (maori, english, description, level, id, email,))
-        except sqlite3.IntegrityError:
-            redirect('/?error=Email+is+already+used')
-        con.commit()
-        con.close()
-        return redirect(f'/category/{id}')
+        query = "SELECT id FROM dictionary WHERE maori = ?"
+        cur.execute(query, (maori,))
+        maori_id = cur.fetchall()
+        print(f"line 360 maori_id = {maori_id}")
+        if len(maori_id) != 0:
+            con.commit()
+            con.close()
+            return redirect(f"/category/{id}?error=The+word+{maori}+already+exists")
+        else:
+            cur = con.cursor()
+            sql = """INSERT INTO dictionary (maori, english, description, level, category_id, date_added, user_id)
+                       VALUES (?, ?, ?, ?, ?, date(), (SELECT id FROM user_details WHERE email = ?))"""
+            try:
+                cur.execute(sql, (maori, english, description, level, id, email,))
+            except sqlite3.IntegrityError:
+                redirect('/?error=Email+is+already+used')
+            con.commit()
+            con.close()
+            return redirect(f'/category/{id}')
     else:
         con = create_connection(DATABASE)
         cur = con.cursor()
@@ -380,8 +390,12 @@ def render_category(id):
         category_words_parm = category_words
         image_names = get_image_filenames(category_words_parm)
         print (f"Line 381 : image_names = {image_names}")
+        error = request.args.get('error')
+
+        if error == None:
+            error = ""
         return render_template("category.html", category_words=category_words_parm, logged_in=is_logged_in(),
-                               image_names=image_names,
+                               image_names=image_names, error=error,
                                category_list=render_category_list(), allow_edit=allow_edit())
 
 
@@ -396,29 +410,39 @@ def render_word(id):
         email = session.get('email')
 
         con = create_connection(DATABASE)
-        sql = """UPDATE dictionary
-                 SET maori = ?,
-                    english = ?,
-                    description = ?,
-                    level = ?,
-                    user_id = (SELECT id FROM user_details WHERE email = ?),
-                    date_added = date()
-                 WHERE id = ?
-                 AND (
-                        maori <> ? OR
-                        english <> ? OR
-                        description <> ? OR
-                        level <> ?
-                     )"""
         cur = con.cursor()
-        try:
-            cur.execute(sql, (maori, english, description, level, email, id, maori, english, description, level,))
-            print(f"{maori},{english},{description},{level}")
-        except sqlite3.IntegrityError:
-            redirect('/?error=Update+failed+try+again+later')
-        con.commit()
-        con.close()
-        return redirect(f'/word/{id}')
+        query = "SELECT id FROM dictionary WHERE maori = ?"
+        cur.execute(query, (maori,))
+        maori_id = cur.fetchall()
+        print(f"line 417 maori_id = {maori_id}")
+        if len(maori_id) != 0:
+            con.commit()
+            con.close()
+            return redirect(f"/word/{id}?error=The+word+{maori}+already+exists")
+        else:
+            cur = con.cursor()
+            sql = """UPDATE dictionary
+                     SET maori = ?,
+                        english = ?,
+                        description = ?,
+                        level = ?,
+                        user_id = (SELECT id FROM user_details WHERE email = ?),
+                        date_added = date()
+                     WHERE id = ?
+                     AND (
+                            maori <> ? OR
+                            english <> ? OR
+                            description <> ? OR
+                            level <> ?
+                         )"""
+            try:
+                cur.execute(sql, (maori, english, description, level, email, id, maori, english, description, level,))
+                print(f"{maori},{english},{description},{level}")
+            except sqlite3.IntegrityError:
+                redirect('/?error=Update+failed+try+again+later')
+            con.commit()
+            con.close()
+            return redirect(f'/word/{id}')
 
 
     con = create_connection(DATABASE)
@@ -440,14 +464,13 @@ def render_word(id):
     print(word_details)
     print(word_details[0][4])
     con.close()
+    error = request.args.get('error')
 
-    return render_template("word.html",
-                           word_details=word_details,
-                           logged_in=is_logged_in(),
-                           image_name=get_image_filename(word_details[0][2]),
-                           checked=checked,
-                           category_list=render_category_list(),
-                           allow_edit=allow_edit())
+    if error == None:
+        error = ""
+    return render_template("word.html", word_details=word_details, logged_in=is_logged_in(), error=error,
+                           image_name=get_image_filename(word_details[0][2]), checked=checked,
+                           category_list=render_category_list(), allow_edit=allow_edit())
 
 
 @app.route('/delete_category/<id>')
@@ -542,6 +565,7 @@ def render_add_category():
         query = "SELECT id FROM category WHERE category_name = ?"
         cur.execute(query, (category_name,))
         category_ids = cur.fetchall()
+        print(f"line 545 category_ids = {category_ids}")
         if len(category_ids) != 0:
             return redirect('/addcategory?error=Category+already+exists')
         else:
@@ -559,7 +583,7 @@ def render_add_category():
         error = ""
 
     return render_template("add_category.html", logged_in=is_logged_in(), category_list=render_category_list(),
-                            allow_edit=allow_edit())
+                            allow_edit=allow_edit(), error=error)
 
 
 def is_logged_in():

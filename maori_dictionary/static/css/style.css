@@ -33,6 +33,15 @@
     padding: 0.3rem;
 }
 
+#add_category_error {
+    padding-top: 50px;
+    padding-bottom: 0;
+}
+
+#category-submit {
+    padding-top: 10px;
+}
+
 .form-element {
     width: 70%;
     float: left;

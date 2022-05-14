@@ -80,6 +80,9 @@
                         <input type="radio" id="10" name="level" value="10" {{ checked[9] }}>
                         <label for="10">10</label>
                     </div>
+                    {% if error != None %}
+                        <div class="error">{{ error }}</div>
+                    {% endif %}
                 <div class="form-group">
                     <div id = "word-submit" class="form-element"><input style="background-color: lightgray;" type="submit" name = "submit" id = "submit"></div>
             </div>

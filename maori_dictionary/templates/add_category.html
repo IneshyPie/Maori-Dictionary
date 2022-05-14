@@ -8,14 +8,13 @@ Add Category
 <h2>Add Category</h2>
 <p>Enter a category name here and click submit to add this category to the dictionary</p>
     <form class="dataForm" method="post"/>
-        <div class="form-group">
             <div class="form-label">Category Name:</div>
             <div class="form-element"><input type="text" name = "category_name" required></div>
-            <div class="form-group">
+            {% if error != None %}
+                <div id="add_category_error" class="error">{{ error }}</div>
+            {% endif %}
                 <div id = "category-submit" class="form-element"><input style="background-color: lightgray;" type="submit" name = "submit" id = "submit" maxlength="30"></div>
-            </div>
             <div class="form-group"></div>
-        </div>
 
 
 {% endblock %}
