@@ -22,7 +22,7 @@
             {% for word in category_words %}
                 <tr>
                     {% if word[1] != None %}
-                        <td><a href="\word\{{ word[3] }}">{{ word[1] }}</a></td>
+                        <td><a href="\word\{{ word[3] }}?breadcrumb=/category/{{ category_words[0][4] }}">{{ word[1] }}</a></td>
                         <td>{{ word[2] }}</td>
                         <td><img class="thumb" src= "../static/images/{{ image_names[loop.index0]}}"></td>
                     {% endif %}

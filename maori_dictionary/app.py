@@ -341,7 +341,7 @@ def render_search(letter):
             selected[string.ascii_lowercase.index(letter.lower())] = "selected"
         print(f"line 234: Dictionary list Outside= {search_results}")
         print(f"line 340: is_logged_in(): {is_logged_in()}")
-    return render_template("search.html", search_results=search_results, logged_in=is_logged_in(),
+    return render_template("search.html", search_results=search_results, logged_in=is_logged_in(), letter=letter,
                                category_list=render_category_list(), selected=selected, allow_edit=allow_edit())
 
 
@@ -411,6 +411,8 @@ def render_word(id):
         description = request.form.get("description").strip()
         level = request.form.get("level")
         email = session.get('email')
+        breadcrumb = request.form.get("breadcrumb")
+        print(f"line414: breadcrumb: {breadcrumb}")
 
         con = create_connection(DATABASE)
         cur = con.cursor()
@@ -449,7 +451,7 @@ def render_word(id):
                 redirect('/?error=Update+failed+try+again+later')
             con.commit()
             con.close()
-            return redirect(f'/word/{id}')
+            return redirect(f'/word/{id}?breadcrumb={breadcrumb}')
 
 
     con = create_connection(DATABASE)
@@ -472,12 +474,17 @@ def render_word(id):
     print(word_details[0][4])
     con.close()
     error = request.args.get('error')
-
     if error == None:
         error = ""
+
+    breadcrumb = request.args.get("breadcrumb")
+    print(f"line415: breadcrumb: {breadcrumb}")
+    if breadcrumb == None:
+        breadcrumb = "/"
+
     return render_template("word.html", word_details=word_details, logged_in=is_logged_in(), error=error,
                            image_name=get_image_filename(word_details[0][2]), checked=checked,
-                           category_list=render_category_list(), allow_edit=allow_edit())
+                           category_list=render_category_list(), allow_edit=allow_edit(), breadcrumb=breadcrumb)
 
 
 @app.route('/delete_category/<id>')
@@ -516,9 +523,14 @@ def render_delete_word(id):
     word_list = cur.fetchall()
     print(word_list)
     con.close()
+    breadcrumb = request.args.get("breadcrumb")
+    print(f"line415: breadcrumb: {breadcrumb}")
+    if breadcrumb == None:
+        breadcrumb = "/"
+
     return render_template("delete_word.html", word_list=word_list, logged_in=is_logged_in(),
                            image_name=get_image_filename(word_list[0][2]),
-                           category_list=render_category_list())
+                           category_list=render_category_list(), breadcrumb=breadcrumb)
 
 
 @app.route('/action_delete_category/<id>', methods=["POST"])
@@ -554,7 +566,9 @@ def action_delete_word(id):
         redirect('/?error=Unknown+error+occurred+during+delete+of+category')
     con.commit()
     con.close()
-    return redirect('/')
+    breadcrumb = request.args.get("breadcrumb")
+    print(f"line570: breadcrumb: {breadcrumb}")
+    return redirect(f'{breadcrumb}')
 
 
 @app.route('/addcategory', methods=["POST", "GET"])

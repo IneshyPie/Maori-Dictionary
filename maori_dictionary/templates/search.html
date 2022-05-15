@@ -92,7 +92,7 @@ Search
         <tbody>
             {% for word in search_results %}
                 <tr>
-                    <td><a href="/word/{{ word[0] }}">{{ word[1] }}</a></td>
+                    <td><a href="/word/{{ word[0] }}?breadcrumb=/search/{{ letter }}">{{ word[1] }}</a></td>
                     <td>{{ word[2] }}</td>
                     <td>{{ word[3] }}</td>
                     <td>{{ word[4] }}</td>

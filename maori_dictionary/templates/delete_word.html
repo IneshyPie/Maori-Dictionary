@@ -6,12 +6,11 @@
 
 {% block main %}
     <h2>{{ word_list[0][1] }} contents<strong>- Ready to Delete</strong></h2>
-    <form class="dataForm" method="post" action="/action_delete_word/{{ word_list[0][0] }}" class="inline"/>
+    <form class="dataForm" method="post" action="/action_delete_word/{{ word_list[0][0] }}?breadcrumb={{ breadcrumb }}" class="inline"/>
     <div id = "delete_word" class="form-group">
-        <input type="hidden">
         <p>Are you sure you wish to delete the word <strong>{{ word_list[0][1] }} </strong>
         <button type="submit" name="submit_param" value="submit_value" class="link-button">Yes</button>
-        / <a href="/word/{{ word_list[0][0] }}">No</a></p>
+        / <a href="/word/{{ word_list[0][0] }}?breadcrumb={{ breadcrumb }}">No</a></p>
     </div>
 <table class="word-table">
         <tbody>
