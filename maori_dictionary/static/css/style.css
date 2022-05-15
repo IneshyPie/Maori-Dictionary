@@ -15,6 +15,10 @@
     padding-top: 3rem;
 }
 
+.form-group-buttons {
+    padding-top: 2rem;
+}
+
 select {
     border: 2px solid black;
     border-radius: 5px;
@@ -24,6 +28,15 @@ select {
 
 .selected {
     background-color: white;
+    padding: 5px;
+    border: solid black 2px;
+}
+
+.main-links {
+    background-image: url('../images/poutama.jpg');
+    padding: 5px;
+    color: black !important;
+    border: solid black 2px;
 }
 
 .letter-label {
@@ -426,7 +439,7 @@ footer img {
         list-style: none;
     }
     nav li {
-        padding: 0.2rem 0;
+        padding: 0.3rem 0 0.3rem 0.1rem;
     }
     nav a {
         color: #fff;
@@ -436,6 +449,8 @@ footer img {
     nav a:hover {
         color: #000;
         background-color: #fff;
+        padding: 5px;
+        border: solid black 2px;
     }
     nav input, nav span {
         visibility: hidden;

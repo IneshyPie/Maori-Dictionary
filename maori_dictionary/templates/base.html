@@ -14,27 +14,28 @@
 		<header>
 			<h1>{% block heading %}Maōri - English Dictionary{% endblock %}</h1>
 		</header>
-
-		<nav>
+		<nav style="padding-top: 0">
 			<ul>
-                <li><a href="/">Home</a></li>
-				<li><a href="/search/~">Search</a></li>
+                <div class="main-links">
+                <li><a href="/" style="color: black;">Home</a></li>
+				<li><a href="/search/~" style="color: black;">Search</a></li>
 				{% if logged_in %}
                     {% if allow_edit %}
-					    <a href="/addcategory">Add Category</a>
+					    <li><a href="/addcategory" style="color: black;">Add Category</a></li>
                     {% endif %}
-					<a href="/logout">Logout</a>
+					<li><a href="/logout" style="color: black;">Logout</a></li>
                 {% else %}
-                    <a href="/login">login</a>
+                    <li><a href="/login" style="color: black;">login</a></li>
                 {% endif %}
-				<li><p>--------------------------</p></li>
+                </div>
+            <br>
                 {% for category in category_list %}
                     <li><a href="/category/{{ category[0] }}">{{ category[1] }}</a></li>
                 {% endfor %}
 			</ul>
 		</nav>
 
-		<main>
+		<main style="border: solid black 2px">
             {% block main %}{% endblock %}
         </main>
 

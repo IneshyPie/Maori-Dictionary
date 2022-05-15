@@ -411,8 +411,6 @@ def render_word(id):
         description = request.form.get("description").strip()
         level = request.form.get("level")
         email = session.get('email')
-        breadcrumb = request.form.get("breadcrumb")
-        print(f"line414: breadcrumb: {breadcrumb}")
 
         con = create_connection(DATABASE)
         cur = con.cursor()
@@ -451,6 +449,8 @@ def render_word(id):
                 redirect('/?error=Update+failed+try+again+later')
             con.commit()
             con.close()
+            breadcrumb = request.args.get("breadcrumb")
+            print(f"line453: breadcrumb: {breadcrumb}")
             return redirect(f'/word/{id}?breadcrumb={breadcrumb}')
 
 
@@ -642,6 +642,12 @@ def render_signup():
         password = request.form.get("password")
         password2 = request.form.get("confirm_password")
         user_type = request.form.get("user_type")
+        if not fname.isalpha():
+            error = "First name should only contain alphabetic characters"
+            return redirect('/signup?error=First+name+should+only+contain+alphabetic+characters')
+        if not lname.isalpha():
+            error = "Last name should only contain alphabetic characters"
+            return redirect('/signup?error=Last+name+should+only+contain+alphabetic+characters')
         if password != password2:
             error = "Passwords don't match"
             return redirect('/signup?error=Passwords+dont+match')
