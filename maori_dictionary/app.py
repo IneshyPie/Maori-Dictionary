@@ -32,7 +32,7 @@ def create_connection(db_file):
 def render_category_list():
     con = create_connection(DATABASE)
     cur = con.cursor()
-    query = "SELECT * FROM category"
+    query = "SELECT * FROM category ORDER BY category_name"
     cur.execute(query)
 
     category_list = cur.fetchall()
@@ -98,7 +98,7 @@ def render_search(letter):
                          WHERE 
                          maori LIKE ? AND 
                          english LIKE ?
-                         ORDER BY date_added DESC LIMIT 20
+                         ORDER BY date_added DESC, maori  LIMIT 20
                          """
                 print(f"case 1 parms: {sql_maori}, {sql_english}")
                 try:
@@ -114,7 +114,7 @@ def render_search(letter):
                          WHERE 
                          maori LIKE ? AND 
                          level = ?
-                         ORDER BY date_added DESC LIMIT 20
+                         ORDER BY date_added DESC, maori  LIMIT 20
                          """
                 print(f"case 2 parms: {sql_maori}, {sql_level}")
                 try:
@@ -130,7 +130,7 @@ def render_search(letter):
                          WHERE 
                          english LIKE ? AND 
                          level = ?
-                         ORDER BY date_added DESC LIMIT 20
+                         ORDER BY date_added DESC, maori  LIMIT 20
                          """
                 print(f"case 3 parms: {sql_english}, {sql_level}")
                 try:
@@ -144,7 +144,7 @@ def render_search(letter):
                          LEFT JOIN user_details u on d.user_id = u.id
                          WHERE 
                          maori LIKE ?
-                         ORDER BY date_added DESC LIMIT 20 
+                         ORDER BY date_added DESC, maori  LIMIT 20 
                          """
                 print(f"case 4 parms: {sql_maori}")
                 try:
@@ -158,7 +158,7 @@ def render_search(letter):
                          LEFT JOIN user_details u on d.user_id = u.id
                          WHERE 
                          english LIKE ?
-                         ORDER BY date_added DESC LIMIT 20
+                         ORDER BY date_added DESC, maori  LIMIT 20
                          """
                 print(f"case 5 parms: {sql_english}")
                 try:
@@ -172,7 +172,7 @@ def render_search(letter):
                          LEFT JOIN user_details u on d.user_id = u.id
                          WHERE 
                          level = ?
-                         ORDER BY date_added DESC LIMIT 20
+                         ORDER BY date_added DESC, maori  LIMIT 20
                          """
                 print(f"case 6 parms: {sql_level}")
                 try:
@@ -190,7 +190,7 @@ def render_search(letter):
                                          maori LIKE ? AND
                                          english LIKE ? AND
                                          level = ?
-                                         ORDER BY date_added DESC LIMIT 20
+                                         ORDER BY date_added DESC, maori  LIMIT 20
                                          """
                 print(f"case 7 parms: {sql_maori}, {sql_english}, {sql_level}")
                 try:
@@ -207,6 +207,7 @@ def render_search(letter):
                          WHERE 
                          maori LIKE ? AND 
                          english LIKE ?
+                         ORDER BY maori
                          """
                 print(f"case 1 parms: {sql_maori}, {sql_english}")
                 try:
@@ -222,6 +223,7 @@ def render_search(letter):
                          WHERE 
                          maori LIKE ? AND 
                          level = ?
+                         ORDER BY maori
                          """
                 print(f"case 2 parms: {sql_maori}, {sql_level}")
                 try:
@@ -237,6 +239,7 @@ def render_search(letter):
                          WHERE 
                          english LIKE ? AND 
                          level = ?
+                         ORDER BY maori
                          """
                 print(f"case 3 parms: {sql_english}, {sql_level}")
                 try:
@@ -249,7 +252,8 @@ def render_search(letter):
                          FROM dictionary d
                          LEFT JOIN user_details u on d.user_id = u.id
                          WHERE 
-                         maori LIKE ? 
+                         maori LIKE ?
+                         ORDER BY maori 
                          """
                 print(f"case 4 parms: {sql_maori}")
                 try:
@@ -263,6 +267,7 @@ def render_search(letter):
                          LEFT JOIN user_details u on d.user_id = u.id
                          WHERE 
                          english LIKE ?
+                         ORDER BY maori
                          """
                 print(f"case 5 parms: {sql_english}")
                 try:
@@ -276,6 +281,7 @@ def render_search(letter):
                          LEFT JOIN user_details u on d.user_id = u.id
                          WHERE 
                          level = ?
+                         ORDER BY maori
                          """
                 print(f"case 6 parms: {sql_level}")
                 try:
@@ -293,6 +299,7 @@ def render_search(letter):
                                          maori LIKE ? AND
                                          english LIKE ? AND
                                          level = ?
+                                         ORDER BY maori
                                          """
                 print(f"case 7 parms: {sql_maori}, {sql_english}, {sql_level}")
                 try:
@@ -303,7 +310,7 @@ def render_search(letter):
             sql = """SELECT d.id, d.maori, d.english, d.level, d.date_added, ifnull(u.first_name, ''), ifnull(u.last_name, '')
                                      FROM dictionary d
                                      LEFT JOIN user_details u on d.user_id = u.id
-                                     ORDER BY date_added DESC LIMIT 20
+                                     ORDER BY date_added DESC, maori  LIMIT 20
                                      """
             try:
                 cur.execute(sql)
@@ -330,7 +337,8 @@ def render_search(letter):
             query = """SELECT d.id, d.maori, d.english, d.level, d.date_added, ifnull(u.first_name, ''), ifnull(u.last_name, '')
                                FROM dictionary d
                                LEFT JOIN user_details u on d.user_id = u.id
-                               WHERE maori LIKE ?"""
+                               WHERE maori LIKE ?
+                               ORDER BY maori"""
             cur.execute(query, (maori_search,))
             print(f"line 93: Query = {query}")
             search_results = cur.fetchall()
@@ -382,7 +390,8 @@ def render_category(id):
         query = """SELECT c.category_name, d.maori, d.english, d.id, c.id
                    FROM category c
                    LEFT JOIN dictionary d on c.id = d.category_id
-                   WHERE c.id = ?"""
+                   WHERE c.id = ?
+                   ORDER BY maori"""
         cur.execute(query, (id,))
         category_words = cur.fetchall()
         print(category_words)
@@ -496,7 +505,8 @@ def render_delete_category(id):
     query = """SELECT c.category_name, d.maori, d.english, d.id, c.id
                    FROM category c
                    LEFT JOIN dictionary d on c.id = d.category_id
-                   WHERE c.id = ?"""
+                   WHERE c.id = ?
+                   ORDER BY maori"""
     cur.execute(query, (id,))
     category_words = cur.fetchall()
     print(category_words)
