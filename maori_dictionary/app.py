@@ -1,25 +1,32 @@
-import string
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# Program name      : Maori Dictionary
+# Author            : Inesh Bhanuka
+# Date              : 2021-05-12
+# Project           : 91902 (NCEA L3 Internal)
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+# ~~~~~~~~~~~~~~~
+# Program imports
+# ~~~~~~~~~~~~~~~
 from flask import Flask, render_template, request, redirect, session
-import sqlite3
-from sqlite3 import Error
 from flask_bcrypt import Bcrypt
 import glob
 import os
-from datetime import datetime
-import smtplib
-import ssl
-from smtplib import SMTPAuthenticationError
-from email.mime.text import MIMEText
-from email.mime.multipart import MIMEMultipart
-from pathlib import Path
+import sqlite3
+from sqlite3 import Error
+import string
 
-app = Flask(__name__)
-bcrypt = Bcrypt(app)
-app.secret_key = "Duckyweu"
+# ~~~~~~~~~~~~~~~~~
+# Declare constants
+# ~~~~~~~~~~~~~~~~~
 DATABASE = "database/dictionary.db"
 
+app = Flask(__name__)        # Create application object
+bcrypt = Bcrypt(app)         # Builds the password security platform
+app.secret_key = "Duckyweu"  # The security key used
 
-def create_connection(db_file):
+
+def get_connection(db_file):
     try:
         connection = sqlite3.connect(db_file)
         connection.execute('pragma foreign_keys=ON')
@@ -27,17 +34,6 @@ def create_connection(db_file):
     except Error as e:
         print(e)
     return None
-
-
-def render_category_list():
-    con = create_connection(DATABASE)
-    cur = con.cursor()
-    query = "SELECT * FROM category ORDER BY category_name"
-    cur.execute(query)
-
-    category_list = cur.fetchall()
-    con.close()
-    return category_list
 
 
 def get_image_filename(english_name):
@@ -55,12 +51,6 @@ def get_image_filenames(words):
     for word in words:
         image_names.append(get_image_filename(word[2]))
     return image_names
-
-
-@app.route('/')
-def render_home():
-    return render_template("home.html", category_list=render_category_list(), logged_in=is_logged_in(),
-                           allow_edit=allow_edit())
 
 
 #Example of the sql
@@ -86,7 +76,7 @@ def render_search(letter):
         sql_maori = ""
         sql_english = ""
         sql_level = ""
-        con = create_connection(DATABASE)
+        con = get_connection(DATABASE)
         cur = con.cursor()
         if maori != "" or english != "" or level != "0" and most_recent == "1":
             if maori != "" and english != "" and level == "0":
@@ -332,7 +322,7 @@ def render_search(letter):
         if letter != "~":
             maori_search = f"{letter}%"
             print(f"line 85: maori_search : {maori_search}")
-            con = create_connection(DATABASE)
+            con = get_connection(DATABASE)
             cur = con.cursor()
             query = """SELECT d.id, d.maori, d.english, d.level, d.date_added, ifnull(u.first_name, ''), ifnull(u.last_name, '')
                                FROM dictionary d
@@ -363,7 +353,7 @@ def render_category(id):
         level = request.form.get("level")
         email = session.get('email')
 
-        con = create_connection(DATABASE)
+        con = get_connection(DATABASE)
         cur = con.cursor()
         query = "SELECT id FROM dictionary WHERE maori = ?"
         cur.execute(query, (maori,))
@@ -385,7 +375,7 @@ def render_category(id):
             con.close()
             return redirect(f'/category/{id}')
     else:
-        con = create_connection(DATABASE)
+        con = get_connection(DATABASE)
         cur = con.cursor()
         query = """SELECT c.category_name, d.maori, d.english, d.id, c.id
                    FROM category c
@@ -421,7 +411,7 @@ def render_word(id):
         level = request.form.get("level")
         email = session.get('email')
 
-        con = create_connection(DATABASE)
+        con = get_connection(DATABASE)
         cur = con.cursor()
         query = """SELECT id FROM dictionary 
                    WHERE maori = ?
@@ -463,7 +453,7 @@ def render_word(id):
             return redirect(f'/word/{id}?breadcrumb={breadcrumb}')
 
 
-    con = create_connection(DATABASE)
+    con = get_connection(DATABASE)
     cur = con.cursor()
     query = """SELECT d.id, d.maori, d.english, d.description, d.level, d.date_added, ifnull(u.first_name, ''), ifnull(u.last_name, '')
                FROM dictionary d
@@ -500,7 +490,7 @@ def render_word(id):
 def render_delete_category(id):
     if not is_logged_in() or not allow_edit():
         return redirect('/')
-    con = create_connection(DATABASE)
+    con = get_connection(DATABASE)
     cur = con.cursor()
     query = """SELECT c.category_name, d.maori, d.english, d.id, c.id
                    FROM category c
@@ -523,7 +513,7 @@ def render_delete_category(id):
 def render_delete_word(id):
     if not is_logged_in() or not allow_edit():
         return redirect('/')
-    con = create_connection(DATABASE)
+    con = get_connection(DATABASE)
     cur = con.cursor()
     query = """SELECT d.id, d.maori, d.english, d.description, d.level, d.date_added, ifnull(u.first_name, ''), ifnull(u.last_name, '')
                FROM dictionary d
@@ -548,7 +538,7 @@ def action_delete_category(id):
     if not is_logged_in() or not allow_edit():
         return redirect('/')
 
-    con = create_connection(DATABASE)
+    con = get_connection(DATABASE)
     query = "DELETE FROM category WHERE id = ?"
     cur = con.cursor()
     try:
@@ -566,7 +556,7 @@ def action_delete_word(id):
     if not is_logged_in() or not allow_edit():
         return redirect('/')
 
-    con = create_connection(DATABASE)
+    con = get_connection(DATABASE)
     query = "DELETE FROM dictionary WHERE id = ?"
     cur = con.cursor()
     try:
@@ -591,7 +581,7 @@ def render_add_category():
         if category_name == "":
             return redirect('/addcategory?error=Please+enter+category+name')
 
-        con = create_connection(DATABASE)
+        con = get_connection(DATABASE)
         cur = con.cursor()
         query = "SELECT id FROM category WHERE category_name = ?"
         cur.execute(query, (category_name,))
@@ -615,29 +605,6 @@ def render_add_category():
 
     return render_template("add_category.html", logged_in=is_logged_in(), category_list=render_category_list(),
                             allow_edit=allow_edit(), error=error)
-
-
-def is_logged_in():
-    if session.get('email') is None:
-        print("not logged in")
-        return False
-    else:
-        print("logged in")
-        return True
-
-
-def allow_edit():
-    if not is_logged_in():
-        return False
-    email = session.get('email')
-    con = create_connection(DATABASE)
-    cur = con.cursor()
-    query = """SELECT allow_edit
-               FROM user_type
-               WHERE id = (SELECT user_type_id FROM user_details WHERE email = ?)"""
-    cur.execute(query, (email,))
-    edit_privileges = cur.fetchall()
-    return edit_privileges[0][0]
 
 
 @app.route('/signup', methods=["POST", "GET"])
@@ -667,7 +634,7 @@ def render_signup():
 
         hashed_password = bcrypt.generate_password_hash(password)
 
-        con = create_connection(DATABASE)
+        con = get_connection(DATABASE)
         query = "INSERT INTO user_details (first_name, last_name, email, password, user_type_id) VALUES (?,?,?,?,(SELECT id from user_type WHERE user_type = ?))"
         cur = con.cursor()
         try:
@@ -679,50 +646,41 @@ def render_signup():
         con.close()
         return redirect('/login')
     error = request.args.get('error')
-
-
-
     return render_template("signup.html", error=error, logged_in=is_logged_in(), category_list=render_category_list())
 
 
-@app.route('/login', methods=["POST", "GET"])
-def render_login():
-    if is_logged_in():
-        print(is_logged_in())
-        return redirect('/')
-    if request.method == "POST":
-        print(request.form)
-        email = request.form["email"].strip().lower()
-        password = request.form["password"].strip()
+def render_category_list():
+    con = get_connection(DATABASE)
+    cur = con.cursor()
+    query = "SELECT * FROM category ORDER BY category_name"
+    cur.execute(query)
 
-        query = """SELECT id, first_name, password FROM user_details WHERE email = ?"""
-        con = create_connection(DATABASE)
-        cur = con.cursor()
-        cur.execute(query, (email,))
-        user_data = cur.fetchall()
-        con.close()
+    category_list = cur.fetchall()
+    con.close()
+    return category_list
 
-        try:
-            user_id = user_data[0][0]
-            first_name = user_data[0][1]
-            db_password = user_data[0][2]
-        except IndexError:
-            return redirect('/login?error=Email+invalid+or+password+incorrect')
 
-        if not bcrypt.check_password_hash(db_password, password):
-            return redirect('/login?error=Email+invalid+or+Password+incorrect')
+def allow_edit():
+    if not is_logged_in():
+        return False
+    email = session.get('email')
+    con = get_connection(DATABASE)
+    cur = con.cursor()
+    query = """SELECT allow_edit
+               FROM user_type
+               WHERE id = (SELECT user_type_id FROM user_details WHERE email = ?)"""
+    cur.execute(query, (email,))
+    edit_privileges = cur.fetchall()
+    return edit_privileges[0][0]
 
-        session['email'] = email
-        session['user_id'] = user_id
-        session['first_name'] = first_name
-        print(session)
-        return redirect('/')
-    error = request.args.get('error')
 
-    if error == None:
-        error = ""
-
-    return render_template("login.html", logged_in=is_logged_in(), category_list=render_category_list(), error=error)
+def is_logged_in():
+    if session.get('email') is None:
+        print("not logged in")
+        return False
+    else:
+        print("logged in")
+        return True
 
 
 @app.route('/logout')
@@ -731,6 +689,74 @@ def logout():
     [session.pop(key) for key in list(session.keys())]
     print(list(session.keys()))
     return redirect('/')
+
+def execute_query(query, args=None):
+    connection = get_connection(DATABASE)
+    cursor = connection.cursor()
+    sql = f"""{query}"""
+    try:
+        if args is None:
+            cursor.execute(sql)
+        else:
+            cursor.execute(sql, args)
+        query_results = cursor.fetchall()
+    except sqlite3.Error as e:
+        return e
+    finally:
+        if connection is not None:
+            connection.close()
+    return query_results
+
+
+def execute_command(command, args=None):
+    connection = get_connection(DATABASE)
+    cursor = connection.cursor()
+    sql = f"""{command}"""
+    try:
+        if args is None:
+            cursor.execute(sql)
+        else:
+            cursor.execute(sql, args)
+        connection.commit()
+    except sqlite3.Error as e:
+        return e
+    finally:
+        if connection is not None:
+            connection.close()
+    return
+
+
+@app.route('/login', methods=["POST", "GET"])
+def render_login():
+    if request.method == "POST":
+        email = request.form["email"].strip().lower()
+        password = request.form["password"].strip()
+        query = """SELECT password FROM user_details WHERE email = ?"""
+        args = [email]
+        query_results = execute_query(query, args)
+        if issubclass(type(query_results), Error)\
+            or len(query_results) == 0\
+                or not bcrypt.check_password_hash(query_results[0][0], password):
+            return redirect('/login?error=Email+invalid+or+password+incorrect')
+        session['email'] = email
+        return redirect('/')
+    if is_logged_in():
+        return redirect('/')
+    error = request.args.get('error')
+    if error is None:
+        error = ""
+    return render_template('login.html'
+                           , logged_in=is_logged_in()
+                           , category_list=render_category_list()
+                           , error=error)
+
+
+@app.route('/')
+def render_home():
+    return render_template('home.html'
+                           , logged_in=is_logged_in()
+                           , allow_edit=allow_edit()
+                           , category_list=render_category_list())
 
 
 if __name__ == '__main__':
