@@ -309,7 +309,7 @@ def render_search(letter):
             print(f"case 8 parms: {sql_maori}, {sql_english}, {sql_level}, {most_recent}")
         else:
             return render_template("search.html", search_results=[], logged_in=is_logged_in(),
-                                   category_list=render_category_list(), selected=selected)
+                                   category_list=get_category_list(), selected=selected)
 
         search_results = cur.fetchall()
         print(f"Search results: {search_results}")
@@ -340,7 +340,7 @@ def render_search(letter):
         print(f"line 234: Dictionary list Outside= {search_results}")
         print(f"line 340: is_logged_in(): {is_logged_in()}")
     return render_template("search.html", search_results=search_results, logged_in=is_logged_in(), letter=letter,
-                               category_list=render_category_list(), selected=selected, allow_edit=allow_edit())
+                           category_list=get_category_list(), selected=selected, allow_edit=allow_edit())
 
 
 @app.route('/category/<id>', methods=["POST", "GET"])
@@ -398,7 +398,7 @@ def render_category(id):
             error = ""
         return render_template("category.html", category_words=category_words_parm, logged_in=is_logged_in(),
                                image_names=image_names, error=error,
-                               category_list=render_category_list(), allow_edit=allow_edit())
+                               category_list=get_category_list(), allow_edit=allow_edit())
 
 
 @app.route('/word/<id>', methods=["POST", "GET"])
@@ -483,7 +483,7 @@ def render_word(id):
 
     return render_template("word.html", word_details=word_details, logged_in=is_logged_in(), error=error,
                            image_name=get_image_filename(word_details[0][2]), checked=checked,
-                           category_list=render_category_list(), allow_edit=allow_edit(), breadcrumb=breadcrumb)
+                           category_list=get_category_list(), allow_edit=allow_edit(), breadcrumb=breadcrumb)
 
 
 @app.route('/delete_category/<id>')
@@ -506,48 +506,46 @@ def render_delete_category(id):
     category_words_parm = category_words
     image_names = get_image_filenames(category_words_parm)
     return render_template("delete_category.html", category_words=category_words_parm, logged_in=is_logged_in(),
-                           image_names=image_names, category_list=render_category_list())
+                           image_names=image_names, category_list=get_category_list())
 
 
 @app.route('/delete_word/<id>')
 def render_delete_word(id):
     if not is_logged_in() or not allow_edit():
         return redirect('/')
-    con = get_connection(DATABASE)
-    cur = con.cursor()
-    query = """SELECT d.id, d.maori, d.english, d.description, d.level, d.date_added, ifnull(u.first_name, ''), ifnull(u.last_name, '')
+    query = """SELECT d.id
+               , d.maori
+               , d.english
+               , d.description
+               , d.level
+               , d.date_added
+               , ifnull(u.first_name, '')
+               , ifnull(u.last_name, '')
                FROM dictionary d
                LEFT JOIN user_details u on d.user_id = u.id
                WHERE d.id = ?"""
-    cur.execute(query, (id,))
-    word_list = cur.fetchall()
-    print(word_list)
-    con.close()
+    query_results = execute_query(query, [id])
+    print(f"line 528: query_results: {query_results}")
+    if issubclass(type(query_results), Error) or len(query_results) == 0:
+        return redirect('/?error=Word+does+not+exist+or+unknown+error')
     breadcrumb = request.args.get("breadcrumb")
-    print(f"line415: breadcrumb: {breadcrumb}")
-    if breadcrumb == None:
+    if breadcrumb is None:
         breadcrumb = "/"
-
-    return render_template("delete_word.html", word_list=word_list, logged_in=is_logged_in(),
-                           image_name=get_image_filename(word_list[0][2]),
-                           category_list=render_category_list(), breadcrumb=breadcrumb)
+    return render_template('delete_word.html'
+                           , word_list=query_results
+                           , logged_in=is_logged_in()
+                           , image_name=get_image_filename(query_results[0][2])
+                           , category_list=get_category_list()
+                           , breadcrumb=breadcrumb)
 
 
 @app.route('/action_delete_category/<id>', methods=["POST"])
 def action_delete_category(id):
     if not is_logged_in() or not allow_edit():
         return redirect('/')
-
-    con = get_connection(DATABASE)
-    query = "DELETE FROM category WHERE id = ?"
-    cur = con.cursor()
-    try:
-        print(id)
-        cur.execute(query, (id,))
-    except sqlite3.IntegrityError:
+    response = execute_command("DELETE FROM category WHERE id = ?", [id])
+    if issubclass(type(response), Error):
         redirect('/?error=Unknown+error+occurred+during+delete+of+category')
-    con.commit()
-    con.close()
     return redirect('/')
 
 
@@ -555,19 +553,12 @@ def action_delete_category(id):
 def action_delete_word(id):
     if not is_logged_in() or not allow_edit():
         return redirect('/')
-
-    con = get_connection(DATABASE)
-    query = "DELETE FROM dictionary WHERE id = ?"
-    cur = con.cursor()
-    try:
-        print(id)
-        cur.execute(query, (id,))
-    except sqlite3.IntegrityError:
-        redirect('/?error=Unknown+error+occurred+during+delete+of+category')
-    con.commit()
-    con.close()
+    response = execute_command("DELETE FROM dictionary WHERE id = ?", [id])
+    print(f"line 557: response: {response}")
+    print(f"line 557: id: {id}")
+    if issubclass(type(response), Error):
+        redirect('/?error=Unknown+error+occurred+during+delete+of+word')
     breadcrumb = request.args.get("breadcrumb")
-    print(f"line570: breadcrumb: {breadcrumb}")
     return redirect(f'{breadcrumb}')
 
 
@@ -576,35 +567,26 @@ def render_add_category():
     if not is_logged_in() or not allow_edit():
         return redirect('/')
     if request.method == "POST":
-        print(request.form)
         category_name = request.form.get("category_name").strip().title()
         if category_name == "":
             return redirect('/addcategory?error=Please+enter+category+name')
-
-        con = get_connection(DATABASE)
-        cur = con.cursor()
-        query = "SELECT id FROM category WHERE category_name = ?"
-        cur.execute(query, (category_name,))
-        category_ids = cur.fetchall()
-        print(f"line 545 category_ids = {category_ids}")
-        if len(category_ids) != 0:
+        category_id = execute_query("SELECT id FROM category WHERE category_name = ?", [category_name])
+        print(f"line 574 category_id: {category_id}")
+        if issubclass(type(category_id), Error) or len(category_id) != 0:
             return redirect('/addcategory?error=Category+already+exists')
         else:
-            sql = "INSERT INTO category (category_name) VALUES (?)"
-        try:
-            cur.execute(sql, (category_name,))
-        except sqlite3.IntegrityError:
-            return ('/addcategory?error=Could+not+add+category+try+again+later')
-        con.commit()
-        con.close()
+            response = execute_command("INSERT INTO category (category_name) VALUES (?)", [category_name])
+            if issubclass(type(response), Error):
+                return redirect('/addcategory?error=Could+not+add+category+try+again+later')
         return redirect('/addcategory')
     error = request.args.get('error')
-
-    if error == None:
+    if error is None:
         error = ""
-
-    return render_template("add_category.html", logged_in=is_logged_in(), category_list=render_category_list(),
-                            allow_edit=allow_edit(), error=error)
+    return render_template('add_category.html'
+                           , logged_in=is_logged_in()
+                           , category_list=get_category_list()
+                           , allow_edit=allow_edit()
+                           , error=error)
 
 
 @app.route('/signup', methods=["POST", "GET"])
@@ -612,93 +594,82 @@ def render_signup():
     if is_logged_in():
         return redirect('/')
     if request.method == "POST":
-        print(request.form)
-        fname = request.form.get("fname").strip().title()
-        lname = request.form.get("lname").strip().title()
+        first_name = request.form.get("first_name").strip().title()
+        last_name = request.form.get("last_name").strip().title()
         email = request.form.get("email").strip().lower()
         password = request.form.get("password")
-        password2 = request.form.get("confirm_password")
+        confirm_password = request.form.get("confirm_password")
         user_type = request.form.get("user_type")
-        if not fname.isalpha():
+        if not first_name.isalpha():
             error = "First name should only contain alphabetic characters"
             return redirect('/signup?error=First+name+should+only+contain+alphabetic+characters')
-        if not lname.isalpha():
+        if not last_name.isalpha():
             error = "Last name should only contain alphabetic characters"
             return redirect('/signup?error=Last+name+should+only+contain+alphabetic+characters')
-        if password != password2:
+        if password != confirm_password:
             error = "Passwords don't match"
             return redirect('/signup?error=Passwords+dont+match')
         if len(password) < 8:
             error = "Passwords must be 8 characters or more"
             return redirect('/signup?error=Passwords+must+be+8+characters+or+more')
-
         hashed_password = bcrypt.generate_password_hash(password)
-
-        con = get_connection(DATABASE)
-        query = "INSERT INTO user_details (first_name, last_name, email, password, user_type_id) VALUES (?,?,?,?,(SELECT id from user_type WHERE user_type = ?))"
-        cur = con.cursor()
-        try:
-            cur.execute(query, (fname, lname, email, hashed_password, user_type,))
-        except sqlite3.IntegrityError:
+        command = """INSERT INTO user_details 
+                   (first_name, last_name, email, password, user_type_id) 
+                   VALUES (?,?,?,?,(SELECT id from user_type WHERE user_type = ?))"""
+        args = [first_name, last_name, email, hashed_password, user_type]
+        response = execute_command(command, args)
+        if issubclass(type(response), Error):
             error = "Email is already in use"
             return redirect('/signup?error=Email+is+already+used')
-        con.commit()
-        con.close()
         return redirect('/login')
     error = request.args.get('error')
-    return render_template("signup.html", error=error, logged_in=is_logged_in(), category_list=render_category_list())
+    return render_template('signup.html'
+                           , logged_in=is_logged_in()
+                           , category_list=get_category_list()
+                           , error = error)
 
 
-def render_category_list():
-    con = get_connection(DATABASE)
-    cur = con.cursor()
-    query = "SELECT * FROM category ORDER BY category_name"
-    cur.execute(query)
-
-    category_list = cur.fetchall()
-    con.close()
+def get_category_list():
+    category_list = execute_query("SELECT * FROM category ORDER BY category_name")
+    if issubclass(type(category_list), Error):
+        return []
     return category_list
 
 
 def allow_edit():
     if not is_logged_in():
         return False
-    email = session.get('email')
-    con = get_connection(DATABASE)
-    cur = con.cursor()
     query = """SELECT allow_edit
                FROM user_type
                WHERE id = (SELECT user_type_id FROM user_details WHERE email = ?)"""
-    cur.execute(query, (email,))
-    edit_privileges = cur.fetchall()
-    return edit_privileges[0][0]
+    args = [session.get('email')]
+    query_results = execute_query(query, args)
+    if issubclass(type(query_results), Error) or len(query_results) == 0:
+        return False
+    return query_results[0][0]
 
 
 def is_logged_in():
     if session.get('email') is None:
-        print("not logged in")
         return False
     else:
-        print("logged in")
         return True
 
 
 @app.route('/logout')
 def logout():
-    print(list(session.keys()))
     [session.pop(key) for key in list(session.keys())]
-    print(list(session.keys()))
     return redirect('/')
+
 
 def execute_query(query, args=None):
     connection = get_connection(DATABASE)
     cursor = connection.cursor()
-    sql = f"""{query}"""
     try:
         if args is None:
-            cursor.execute(sql)
+            cursor.execute(query)
         else:
-            cursor.execute(sql, args)
+            cursor.execute(query, args)
         query_results = cursor.fetchall()
     except sqlite3.Error as e:
         return e
@@ -728,26 +699,24 @@ def execute_command(command, args=None):
 
 @app.route('/login', methods=["POST", "GET"])
 def render_login():
+    if is_logged_in():
+        return redirect('/')
     if request.method == "POST":
         email = request.form["email"].strip().lower()
         password = request.form["password"].strip()
-        query = """SELECT password FROM user_details WHERE email = ?"""
-        args = [email]
-        query_results = execute_query(query, args)
+        query_results = execute_query("SELECT password FROM user_details WHERE email = ?", [email])
         if issubclass(type(query_results), Error)\
             or len(query_results) == 0\
                 or not bcrypt.check_password_hash(query_results[0][0], password):
             return redirect('/login?error=Email+invalid+or+password+incorrect')
         session['email'] = email
         return redirect('/')
-    if is_logged_in():
-        return redirect('/')
     error = request.args.get('error')
     if error is None:
         error = ""
     return render_template('login.html'
                            , logged_in=is_logged_in()
-                           , category_list=render_category_list()
+                           , category_list=get_category_list()
                            , error=error)
 
 
@@ -756,7 +725,7 @@ def render_home():
     return render_template('home.html'
                            , logged_in=is_logged_in()
                            , allow_edit=allow_edit()
-                           , category_list=render_category_list())
+                           , category_list=get_category_list())
 
 
 if __name__ == '__main__':
