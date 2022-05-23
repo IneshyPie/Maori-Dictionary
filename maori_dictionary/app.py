@@ -38,10 +38,8 @@ def get_connection(db_file):
 
 def get_image_filename(english_name):
     path_file = f"static\\images\\{english_name}.*"
-    print(path_file)
     listing = glob.glob(path_file)
     for filename in listing:
-        print(filename)
         return os.path.basename(filename)
     return "noimage.png"
 
@@ -53,17 +51,165 @@ def get_image_filenames(words):
     return image_names
 
 
-#Example of the sql
-#SELECT d.id, d.maori, d.english, d.level, d.date_added, ifnull(u.first_name, ''), ifnull(u.last_name, '')
-#FROM dictionary d
-#LEFT JOIN user_details u on d.user_id = u.id
-#WHERE
-#    maori LIKE '%'
-#    AND
-#    english LIKE '%'
-#    AND
-#    level = 5
-#ORDER BY date_added DESC LIMIT 20
+def get_search_results(maori, english, level, most_recent):
+    query = ""
+    args = []
+    maori_search = f"{maori}%"
+    english_search = f"{english}%"
+    level_search = f"{level}"
+    if maori != "" or english != "" or level != "0" and most_recent == "1":
+        if maori != "" and english != "" and level == "0":
+            query = """SELECT d.id, d.maori, d.english, d.level, d.date_added, ifnull(u.first_name, ''), ifnull(u.last_name, '')
+                     FROM dictionary d
+                     LEFT JOIN user_details u on d.user_id = u.id
+                     WHERE 
+                     maori LIKE ? AND 
+                     english LIKE ?
+                     ORDER BY date_added DESC, maori  LIMIT 20
+                     """
+            args = [maori_search, english_search]
+        if maori != "" and english == "" and level != "0":
+            query = """SELECT d.id, d.maori, d.english, d.level, d.date_added, ifnull(u.first_name, ''), ifnull(u.last_name, '')
+                     FROM dictionary d
+                     LEFT JOIN user_details u on d.user_id = u.id
+                     WHERE 
+                     maori LIKE ? AND 
+                     level = ?
+                     ORDER BY date_added DESC, maori  LIMIT 20
+                     """
+            args = [maori_search, level_search]
+        if maori == "" and english != "" and level != "0":
+            query = """SELECT d.id, d.maori, d.english, d.level, d.date_added, ifnull(u.first_name, ''), ifnull(u.last_name, '')
+                     FROM dictionary d
+                     LEFT JOIN user_details u on d.user_id = u.id
+                     WHERE 
+                     english LIKE ? AND 
+                     level = ?
+                     ORDER BY date_added DESC, maori  LIMIT 20
+                     """
+            args = [english_search, level_search]
+        if maori != "" and english == "" and level == "0":
+            query = """SELECT d.id, d.maori, d.english, d.level, d.date_added, ifnull(u.first_name, ''), ifnull(u.last_name, '')
+                     FROM dictionary d
+                     LEFT JOIN user_details u on d.user_id = u.id
+                     WHERE 
+                     maori LIKE ?
+                     ORDER BY date_added DESC, maori  LIMIT 20 
+                     """
+            args = [maori_search]
+        if maori == "" and english != "" and level == "0":
+            query = """SELECT d.id, d.maori, d.english, d.level, d.date_added, ifnull(u.first_name, ''), ifnull(u.last_name, '')
+                     FROM dictionary d
+                     LEFT JOIN user_details u on d.user_id = u.id
+                     WHERE 
+                     english LIKE ?
+                     ORDER BY date_added DESC, maori  LIMIT 20
+                     """
+            args = [english_search]
+        if maori == "" and english == "" and level != "0":
+            query = """SELECT d.id, d.maori, d.english, d.level, d.date_added, ifnull(u.first_name, ''), ifnull(u.last_name, '')
+                     FROM dictionary d
+                     LEFT JOIN user_details u on d.user_id = u.id
+                     WHERE 
+                     level = ?
+                     ORDER BY date_added DESC, maori  LIMIT 20
+                     """
+            args = [level_search]
+        if maori != "" and english != "" and level != "0":
+            query = """SELECT d.id, d.maori, d.english, d.level, d.date_added, ifnull(u.first_name, ''), ifnull(u.last_name, '')
+                     FROM dictionary d
+                     LEFT JOIN user_details u on d.user_id = u.id
+                     WHERE 
+                     maori LIKE ? AND
+                     english LIKE ? AND
+                     level = ?
+                     ORDER BY date_added DESC, maori  LIMIT 20
+                     """
+            args = [maori_search, english_search, level_search]
+    elif maori != "" or english != "" or level != "0" and most_recent == "0":
+        if maori != "" and english != "" and level == "0":
+            query = """SELECT d.id, d.maori, d.english, d.level, d.date_added, ifnull(u.first_name, ''), ifnull(u.last_name, '')
+                     FROM dictionary d
+                     LEFT JOIN user_details u on d.user_id = u.id
+                     WHERE 
+                     maori LIKE ? AND 
+                     english LIKE ?
+                     ORDER BY maori
+                     """
+            args = [maori_search, english_search]
+        if maori != "" and english == "" and level != "0":
+            query = """SELECT d.id, d.maori, d.english, d.level, d.date_added, ifnull(u.first_name, ''), ifnull(u.last_name, '')
+                     FROM dictionary d
+                     LEFT JOIN user_details u on d.user_id = u.id
+                     WHERE 
+                     maori LIKE ? AND 
+                     level = ?
+                     ORDER BY maori
+                     """
+            args = [maori_search, level_search]
+        if maori == "" and english != "" and level != "0":
+            query = """SELECT d.id, d.maori, d.english, d.level, d.date_added, ifnull(u.first_name, ''), ifnull(u.last_name, '')
+                     FROM dictionary d
+                     LEFT JOIN user_details u on d.user_id = u.id
+                     WHERE 
+                     english LIKE ? AND 
+                     level = ?
+                     ORDER BY maori
+                     """
+            args = [english_search, level_search]
+        if maori != "" and english == "" and level == "0":
+            query = """SELECT d.id, d.maori, d.english, d.level, d.date_added, ifnull(u.first_name, ''), ifnull(u.last_name, '')
+                     FROM dictionary d
+                     LEFT JOIN user_details u on d.user_id = u.id
+                     WHERE 
+                     maori LIKE ?
+                     ORDER BY maori 
+                     """
+            args = [maori_search]
+        if maori == "" and english != "" and level == "0":
+            query = """SELECT d.id, d.maori, d.english, d.level, d.date_added, ifnull(u.first_name, ''), ifnull(u.last_name, '')
+                     FROM dictionary d
+                     LEFT JOIN user_details u on d.user_id = u.id
+                     WHERE 
+                     english LIKE ?
+                     ORDER BY maori
+                     """
+            args = [english_search]
+        if maori == "" and english == "" and level != "0":
+            query = """SELECT d.id, d.maori, d.english, d.level, d.date_added, ifnull(u.first_name, ''), ifnull(u.last_name, '')
+                     FROM dictionary d
+                     LEFT JOIN user_details u on d.user_id = u.id
+                     WHERE 
+                     level = ?
+                     ORDER BY maori
+                     """
+            args = [level_search]
+        if maori != "" and english != "" and level != "0":
+            query = """SELECT d.id, d.maori, d.english, d.level, d.date_added, ifnull(u.first_name, ''), ifnull(u.last_name, '')
+                     FROM dictionary d
+                     LEFT JOIN user_details u on d.user_id = u.id
+                     WHERE 
+                     maori LIKE ? AND
+                     english LIKE ? AND
+                     level = ?
+                     ORDER BY maori
+                     """
+            args = [maori_search, english_search, level_search]
+    elif most_recent == "1":
+        query = """SELECT d.id, d.maori, d.english, d.level, d.date_added, ifnull(u.first_name, ''), ifnull(u.last_name, '')
+                 FROM dictionary d
+                 LEFT JOIN user_details u on d.user_id = u.id
+                 ORDER BY date_added DESC, maori  LIMIT 20
+                 """
+    if len(args) == 0:
+        query_results = execute_query(query)
+    else:
+        query_results = execute_query(query, args)
+    if issubclass(type(query_results), Error):
+        redirect('/?error=has+occurred')
+    return query_results
+
+
 @app.route('/search/<letter>', methods=["POST", "GET"])
 def render_search(letter):
     selected = []
@@ -72,273 +218,26 @@ def render_search(letter):
         english = request.form.get("english").strip()
         level = request.form.get("level").strip()
         most_recent = request.form.get("Date-Added").strip()
-        print(f"form data: maori: {maori}, english: {english}, level: {level}, most_recent: {most_recent}")
-        sql_maori = ""
-        sql_english = ""
-        sql_level = ""
-        con = get_connection(DATABASE)
-        cur = con.cursor()
-        if maori != "" or english != "" or level != "0" and most_recent == "1":
-            if maori != "" and english != "" and level == "0":
-                sql_maori = f"{maori}%"
-                sql_english = f"{english}%"
-                sql = """SELECT d.id, d.maori, d.english, d.level, d.date_added, ifnull(u.first_name, ''), ifnull(u.last_name, '')
-                         FROM dictionary d
-                         LEFT JOIN user_details u on d.user_id = u.id
-                         WHERE 
-                         maori LIKE ? AND 
-                         english LIKE ?
-                         ORDER BY date_added DESC, maori  LIMIT 20
-                         """
-                print(f"case 1 parms: {sql_maori}, {sql_english}")
-                try:
-                    cur.execute(sql, (sql_maori, sql_english,))
-                except sqlite3.IntegrityError:
-                    redirect('/?error=has+occurred')
-            if maori != "" and english == "" and level != "0":
-                sql_maori = f"{maori}%"
-                sql_level = f"{level}"
-                sql = """SELECT d.id, d.maori, d.english, d.level, d.date_added, ifnull(u.first_name, ''), ifnull(u.last_name, '')
-                         FROM dictionary d
-                         LEFT JOIN user_details u on d.user_id = u.id
-                         WHERE 
-                         maori LIKE ? AND 
-                         level = ?
-                         ORDER BY date_added DESC, maori  LIMIT 20
-                         """
-                print(f"case 2 parms: {sql_maori}, {sql_level}")
-                try:
-                    cur.execute(sql, (sql_maori, sql_level,))
-                except sqlite3.IntegrityError:
-                    redirect('/?error=has+occurred')
-            if maori == "" and english != "" and level != "0":
-                sql_english = f"{english}%"
-                sql_level = f"{level}"
-                sql = """SELECT d.id, d.maori, d.english, d.level, d.date_added, ifnull(u.first_name, ''), ifnull(u.last_name, '')
-                         FROM dictionary d
-                         LEFT JOIN user_details u on d.user_id = u.id
-                         WHERE 
-                         english LIKE ? AND 
-                         level = ?
-                         ORDER BY date_added DESC, maori  LIMIT 20
-                         """
-                print(f"case 3 parms: {sql_english}, {sql_level}")
-                try:
-                    cur.execute(sql, (sql_english, sql_level,))
-                except sqlite3.IntegrityError:
-                    redirect('/?error=has+occurred')
-            if maori != "" and english == "" and level == "0":
-                sql_maori = f"{maori}%"
-                sql = """SELECT d.id, d.maori, d.english, d.level, d.date_added, ifnull(u.first_name, ''), ifnull(u.last_name, '')
-                         FROM dictionary d
-                         LEFT JOIN user_details u on d.user_id = u.id
-                         WHERE 
-                         maori LIKE ?
-                         ORDER BY date_added DESC, maori  LIMIT 20 
-                         """
-                print(f"case 4 parms: {sql_maori}")
-                try:
-                    cur.execute(sql, (sql_maori,))
-                except sqlite3.IntegrityError:
-                    redirect('/?error=has+occurred')
-            if maori == "" and english != "" and level == "0":
-                sql_english = f"{english}%"
-                sql = """SELECT d.id, d.maori, d.english, d.level, d.date_added, ifnull(u.first_name, ''), ifnull(u.last_name, '')
-                         FROM dictionary d
-                         LEFT JOIN user_details u on d.user_id = u.id
-                         WHERE 
-                         english LIKE ?
-                         ORDER BY date_added DESC, maori  LIMIT 20
-                         """
-                print(f"case 5 parms: {sql_english}")
-                try:
-                    cur.execute(sql, (sql_english,))
-                except sqlite3.IntegrityError:
-                    redirect('/?error=has+occurred')
-            if maori == "" and english == "" and level != "0":
-                sql_level = f"{level}"
-                sql = """SELECT d.id, d.maori, d.english, d.level, d.date_added, ifnull(u.first_name, ''), ifnull(u.last_name, '')
-                         FROM dictionary d
-                         LEFT JOIN user_details u on d.user_id = u.id
-                         WHERE 
-                         level = ?
-                         ORDER BY date_added DESC, maori  LIMIT 20
-                         """
-                print(f"case 6 parms: {sql_level}")
-                try:
-                    cur.execute(sql, (sql_level,))
-                except sqlite3.IntegrityError:
-                    redirect('/?error=has+occurred')
-            if maori != "" and english != "" and level != "0":
-                sql_maori = f"{maori}%"
-                sql_english = f"{english}%"
-                sql_level = f"{level}"
-                sql = """SELECT d.id, d.maori, d.english, d.level, d.date_added, ifnull(u.first_name, ''), ifnull(u.last_name, '')
-                                         FROM dictionary d
-                                         LEFT JOIN user_details u on d.user_id = u.id
-                                         WHERE 
-                                         maori LIKE ? AND
-                                         english LIKE ? AND
-                                         level = ?
-                                         ORDER BY date_added DESC, maori  LIMIT 20
-                                         """
-                print(f"case 7 parms: {sql_maori}, {sql_english}, {sql_level}")
-                try:
-                    cur.execute(sql, (sql_maori, sql_english, sql_level,))
-                except sqlite3.IntegrityError:
-                    redirect('/?error=has+occurred')
-        elif maori != "" or english != "" or level != "0" and most_recent == "0":
-            if maori != "" and english != "" and level == "0":
-                sql_maori = f"{maori}%"
-                sql_english = f"{english}%"
-                sql = """SELECT d.id, d.maori, d.english, d.level, d.date_added, ifnull(u.first_name, ''), ifnull(u.last_name, '')
-                         FROM dictionary d
-                         LEFT JOIN user_details u on d.user_id = u.id
-                         WHERE 
-                         maori LIKE ? AND 
-                         english LIKE ?
-                         ORDER BY maori
-                         """
-                print(f"case 1 parms: {sql_maori}, {sql_english}")
-                try:
-                    cur.execute(sql, (sql_maori, sql_english,))
-                except sqlite3.IntegrityError:
-                    redirect('/?error=has+occurred')
-            if maori != "" and english == "" and level != "0":
-                sql_maori = f"{maori}%"
-                sql_level = f"{level}"
-                sql = """SELECT d.id, d.maori, d.english, d.level, d.date_added, ifnull(u.first_name, ''), ifnull(u.last_name, '')
-                         FROM dictionary d
-                         LEFT JOIN user_details u on d.user_id = u.id
-                         WHERE 
-                         maori LIKE ? AND 
-                         level = ?
-                         ORDER BY maori
-                         """
-                print(f"case 2 parms: {sql_maori}, {sql_level}")
-                try:
-                    cur.execute(sql, (sql_maori, sql_level,))
-                except sqlite3.IntegrityError:
-                    redirect('/?error=has+occurred')
-            if maori == "" and english != "" and level != "0":
-                sql_english = f"{english}%"
-                sql_level = f"{level}"
-                sql = """SELECT d.id, d.maori, d.english, d.level, d.date_added, ifnull(u.first_name, ''), ifnull(u.last_name, '')
-                         FROM dictionary d
-                         LEFT JOIN user_details u on d.user_id = u.id
-                         WHERE 
-                         english LIKE ? AND 
-                         level = ?
-                         ORDER BY maori
-                         """
-                print(f"case 3 parms: {sql_english}, {sql_level}")
-                try:
-                    cur.execute(sql, (sql_english, sql_level,))
-                except sqlite3.IntegrityError:
-                    redirect('/?error=has+occurred')
-            if maori != "" and english == "" and level == "0":
-                sql_maori = f"{maori}%"
-                sql = """SELECT d.id, d.maori, d.english, d.level, d.date_added, ifnull(u.first_name, ''), ifnull(u.last_name, '')
-                         FROM dictionary d
-                         LEFT JOIN user_details u on d.user_id = u.id
-                         WHERE 
-                         maori LIKE ?
-                         ORDER BY maori 
-                         """
-                print(f"case 4 parms: {sql_maori}")
-                try:
-                    cur.execute(sql, (sql_maori,))
-                except sqlite3.IntegrityError:
-                    redirect('/?error=has+occurred')
-            if maori == "" and english != "" and level == "0":
-                sql_english = f"{english}%"
-                sql = """SELECT d.id, d.maori, d.english, d.level, d.date_added, ifnull(u.first_name, ''), ifnull(u.last_name, '')
-                         FROM dictionary d
-                         LEFT JOIN user_details u on d.user_id = u.id
-                         WHERE 
-                         english LIKE ?
-                         ORDER BY maori
-                         """
-                print(f"case 5 parms: {sql_english}")
-                try:
-                    cur.execute(sql, (sql_english,))
-                except sqlite3.IntegrityError:
-                    redirect('/?error=has+occurred')
-            if maori == "" and english == "" and level != "0":
-                sql_level = f"{level}"
-                sql = """SELECT d.id, d.maori, d.english, d.level, d.date_added, ifnull(u.first_name, ''), ifnull(u.last_name, '')
-                         FROM dictionary d
-                         LEFT JOIN user_details u on d.user_id = u.id
-                         WHERE 
-                         level = ?
-                         ORDER BY maori
-                         """
-                print(f"case 6 parms: {sql_level}")
-                try:
-                    cur.execute(sql, (sql_level,))
-                except sqlite3.IntegrityError:
-                    redirect('/?error=has+occurred')
-            if maori != "" and english != "" and level != "0":
-                sql_maori = f"{maori}%"
-                sql_english = f"{english}%"
-                sql_level = f"{level}"
-                sql = """SELECT d.id, d.maori, d.english, d.level, d.date_added, ifnull(u.first_name, ''), ifnull(u.last_name, '')
-                                         FROM dictionary d
-                                         LEFT JOIN user_details u on d.user_id = u.id
-                                         WHERE 
-                                         maori LIKE ? AND
-                                         english LIKE ? AND
-                                         level = ?
-                                         ORDER BY maori
-                                         """
-                print(f"case 7 parms: {sql_maori}, {sql_english}, {sql_level}")
-                try:
-                    cur.execute(sql, (sql_maori, sql_english, sql_level,))
-                except sqlite3.IntegrityError:
-                    redirect('/?error=has+occurred')
-        elif most_recent == "1":
-            sql = """SELECT d.id, d.maori, d.english, d.level, d.date_added, ifnull(u.first_name, ''), ifnull(u.last_name, '')
-                                     FROM dictionary d
-                                     LEFT JOIN user_details u on d.user_id = u.id
-                                     ORDER BY date_added DESC, maori  LIMIT 20
-                                     """
-            try:
-                cur.execute(sql)
-            except sqlite3.IntegrityError:
-                redirect('/?error=has+occurred')
-            print(f"case 8 parms: {sql_maori}, {sql_english}, {sql_level}, {most_recent}")
-        else:
-            return render_template("search.html", search_results=[], logged_in=is_logged_in(),
-                                   category_list=get_category_list(), selected=selected)
-
-        search_results = cur.fetchall()
-        print(f"Search results: {search_results}")
-        con.commit()
-        con.close()
-
+        if maori == "" and english == "" and level == "0" and most_recent == "0":
+            return render_template('search.html'
+                                   , search_results=[]
+                                   , logged_in=is_logged_in()
+                                   , category_list=get_category_list()
+                                   , selected=selected)
+        search_results = get_search_results(maori, english, level, most_recent)
     else:
         search_results = []
-        print(f"line 82: {letter}")
         if letter != "~":
-            maori_search = f"{letter}%"
-            print(f"line 85: maori_search : {maori_search}")
-            con = get_connection(DATABASE)
-            cur = con.cursor()
             query = """SELECT d.id, d.maori, d.english, d.level, d.date_added, ifnull(u.first_name, ''), ifnull(u.last_name, '')
-                               FROM dictionary d
-                               LEFT JOIN user_details u on d.user_id = u.id
-                               WHERE maori LIKE ?
-                               ORDER BY maori"""
-            cur.execute(query, (maori_search,))
-            print(f"line 93: Query = {query}")
-            search_results = cur.fetchall()
-            print(f"line 95: Dictionary list = {search_results}")
-            con.close()
+                       FROM dictionary d
+                       LEFT JOIN user_details u on d.user_id = u.id
+                       WHERE maori LIKE ?
+                       ORDER BY maori"""
+            search_results = execute_query(query, [f"{letter}%"])
+            if issubclass(type(search_results), Error):
+                return redirect('/?error=Unknown+error')
             selected = ["" for i in range(26)]
-            print(string.ascii_lowercase.index(letter.lower()))
             selected[string.ascii_lowercase.index(letter.lower())] = "selected"
-        print(f"line 234: Dictionary list Outside= {search_results}")
-        print(f"line 340: is_logged_in(): {is_logged_in()}")
     return render_template("search.html", search_results=search_results, logged_in=is_logged_in(), letter=letter,
                            category_list=get_category_list(), selected=selected, allow_edit=allow_edit())
 
@@ -346,88 +245,56 @@ def render_search(letter):
 @app.route('/category/<id>', methods=["POST", "GET"])
 def render_category(id):
     if request.method == "POST":
-        print(request.form)
         maori = request.form.get("maori").strip()
         english = request.form.get("english").strip()
         description = request.form.get("description").strip()
         level = request.form.get("level")
         email = session.get('email')
-
-        con = get_connection(DATABASE)
-        cur = con.cursor()
-        query = "SELECT id FROM dictionary WHERE maori = ?"
-        cur.execute(query, (maori,))
-        maori_id = cur.fetchall()
-        print(f"line 360 maori_id = {maori_id}")
-        if len(maori_id) != 0:
-            con.commit()
-            con.close()
+        query_results = execute_query("SELECT id FROM dictionary WHERE maori = ?", [maori])
+        if issubclass(type(query_results), Error) or len(query_results) != 0:
             return redirect(f"/category/{id}?error=The+word+{maori}+already+exists")
         else:
-            cur = con.cursor()
-            sql = """INSERT INTO dictionary (maori, english, description, level, category_id, date_added, user_id)
-                       VALUES (?, ?, ?, ?, ?, date(), (SELECT id FROM user_details WHERE email = ?))"""
-            try:
-                cur.execute(sql, (maori, english, description, level, id, email,))
-            except sqlite3.IntegrityError:
+            command = """INSERT INTO dictionary (maori, english, description, level, category_id, date_added, user_id)
+                           VALUES (?, ?, ?, ?, ?, date(), (SELECT id FROM user_details WHERE email = ?))"""
+            args = [maori, english, description, level, id, email]
+            response = execute_command(command, args)
+            if issubclass(type(response), Error):
                 redirect(f"/category/{id}?error=The+word+{maori}+already+exists")
-            con.commit()
-            con.close()
             return redirect(f'/category/{id}')
-    else:
-        con = get_connection(DATABASE)
-        cur = con.cursor()
-        query = """SELECT c.category_name, d.maori, d.english, d.id, c.id
-                   FROM category c
-                   LEFT JOIN dictionary d on c.id = d.category_id
-                   WHERE c.id = ?
-                   ORDER BY maori"""
-        cur.execute(query, (id,))
-        category_words = cur.fetchall()
-        print(category_words)
-        con.close()
-
-        if category_words[0][3] is None:
-            category_words_parm = []
-        category_words_parm = category_words
-        image_names = get_image_filenames(category_words_parm)
-        print (f"Line 381 : image_names = {image_names}")
-        error = request.args.get('error')
-
-        if error == None:
-            error = ""
-        return render_template("category.html", category_words=category_words_parm, logged_in=is_logged_in(),
-                               image_names=image_names, error=error,
-                               category_list=get_category_list(), allow_edit=allow_edit())
+    query = """SELECT c.category_name, d.maori, d.english, d.id, c.id
+               FROM category c
+               LEFT JOIN dictionary d on c.id = d.category_id
+               WHERE c.id = ?
+               ORDER BY maori"""
+    query_results = execute_query(query, [id])
+    if issubclass(type(query_results), Error):
+        return redirect('/?error=Category+could+not+be+retrieved+unknown+error')
+    image_names = get_image_filenames(query_results)
+    error = request.args.get('error')
+    if error is None:
+        error = ""
+    return render_template('category.html'
+                           , category_words=query_results
+                           , logged_in=is_logged_in()
+                           , image_names=image_names
+                           , error=error
+                           , category_list=get_category_list()
+                           , allow_edit=allow_edit())
 
 
 @app.route('/word/<id>', methods=["POST", "GET"])
 def render_word(id):
     if request.method == "POST":
-        print(request.form)
         maori = request.form.get("maori").strip()
         english = request.form.get("english").strip()
         description = request.form.get("description").strip()
         level = request.form.get("level")
         email = session.get('email')
-
-        con = get_connection(DATABASE)
-        cur = con.cursor()
-        query = """SELECT id FROM dictionary 
-                   WHERE maori = ?
-                   AND (
-                        id <> ?
-                        )"""
-        cur.execute(query, (maori, id,))
-        maori_id = cur.fetchall()
-        print(f"line 417 maori_id = {maori_id}")
-        if len(maori_id) != 0:
-            con.commit()
-            con.close()
+        query_results = execute_query("SELECT id FROM dictionary WHERE maori = ? AND id <> ?", [maori, id])
+        if issubclass(type(query_results), Error) or len(query_results) != 0:
             return redirect(f"/word/{id}?error=The+word+'{maori}'+already+exists")
         else:
-            cur = con.cursor()
-            sql = """UPDATE dictionary
+            command = """UPDATE dictionary
                      SET maori = ?,
                         english = ?,
                         description = ?,
@@ -441,72 +308,62 @@ def render_word(id):
                             description <> ? OR
                             level <> ?
                          )"""
-            try:
-                cur.execute(sql, (maori, english, description, level, email, id, maori, english, description, level,))
-                print(f"{maori},{english},{description},{level}")
-            except sqlite3.IntegrityError:
+            args = [maori, english, description, level, email, id, maori, english, description, level]
+            response = execute_command(command, args)
+            if issubclass(type(response), Error):
                 redirect('/?error=Update+failed+try+again+later')
-            con.commit()
-            con.close()
             breadcrumb = request.args.get("breadcrumb")
-            print(f"line453: breadcrumb: {breadcrumb}")
             return redirect(f'/word/{id}?breadcrumb={breadcrumb}')
-
-
-    con = get_connection(DATABASE)
-    cur = con.cursor()
     query = """SELECT d.id, d.maori, d.english, d.description, d.level, d.date_added, ifnull(u.first_name, ''), ifnull(u.last_name, '')
                FROM dictionary d
                LEFT JOIN user_details u on d.user_id = u.id
                WHERE d.id = ?"""
-    cur.execute(query, (id,))
-    word_details = cur.fetchall()
+    query_results = execute_query(query, [id])
+    if issubclass(type(query_results), Error) or len(query_results) == 0:
+        return redirect('/?error=Word+could+not+be+retrieved+unknown+error')
     checked = []
     for i in range(1, 11):
         print(i)
-        if word_details[0][4] == i:
+        if query_results[0][4] == i:
             checked.append("checked")
         else:
             checked.append("")
-    print(checked)
-    print(word_details)
-    print(word_details[0][4])
-    con.close()
     error = request.args.get('error')
-    if error == None:
+    if error is None:
         error = ""
-
     breadcrumb = request.args.get("breadcrumb")
-    print(f"line415: breadcrumb: {breadcrumb}")
-    if breadcrumb == None:
+    if breadcrumb is None:
         breadcrumb = "/"
-
-    return render_template("word.html", word_details=word_details, logged_in=is_logged_in(), error=error,
-                           image_name=get_image_filename(word_details[0][2]), checked=checked,
-                           category_list=get_category_list(), allow_edit=allow_edit(), breadcrumb=breadcrumb)
+    return render_template('word.html'
+                           , word_details=query_results
+                           , logged_in=is_logged_in()
+                           , error=error
+                           , image_name=get_image_filename(query_results[0][2])
+                           , checked=checked
+                           , category_list=get_category_list()
+                           , allow_edit=allow_edit()
+                           , breadcrumb=breadcrumb)
 
 
 @app.route('/delete_category/<id>')
 def render_delete_category(id):
     if not is_logged_in() or not allow_edit():
         return redirect('/')
-    con = get_connection(DATABASE)
-    cur = con.cursor()
     query = """SELECT c.category_name, d.maori, d.english, d.id, c.id
-                   FROM category c
-                   LEFT JOIN dictionary d on c.id = d.category_id
-                   WHERE c.id = ?
-                   ORDER BY maori"""
-    cur.execute(query, (id,))
-    category_words = cur.fetchall()
-    print(category_words)
-    con.close()
-    if category_words[0][4] is None:
-        category_words_parm = []
-    category_words_parm = category_words
-    image_names = get_image_filenames(category_words_parm)
-    return render_template("delete_category.html", category_words=category_words_parm, logged_in=is_logged_in(),
-                           image_names=image_names, category_list=get_category_list())
+               FROM category c
+               LEFT JOIN dictionary d on c.id = d.category_id
+               WHERE c.id = ?
+               ORDER BY maori"""
+    query_results = execute_query(query, [id])
+    if issubclass(type(query_results), Error) or len(query_results) == 0:
+        return redirect('/?error=Unknown+error')
+    image_names = get_image_filenames(query_results)
+    return render_template('delete_category.html'
+                           , category_words=query_results
+                           , logged_in=is_logged_in()
+                           , image_names=image_names
+                           , category_list=get_category_list()
+                           , allow_edit=allow_edit())
 
 
 @app.route('/delete_word/<id>')
@@ -525,7 +382,6 @@ def render_delete_word(id):
                LEFT JOIN user_details u on d.user_id = u.id
                WHERE d.id = ?"""
     query_results = execute_query(query, [id])
-    print(f"line 528: query_results: {query_results}")
     if issubclass(type(query_results), Error) or len(query_results) == 0:
         return redirect('/?error=Word+does+not+exist+or+unknown+error')
     breadcrumb = request.args.get("breadcrumb")
@@ -600,10 +456,10 @@ def render_signup():
         password = request.form.get("password")
         confirm_password = request.form.get("confirm_password")
         user_type = request.form.get("user_type")
-        if not first_name.isalpha():
+        if first_name.isdigit():
             error = "First name should only contain alphabetic characters"
             return redirect('/signup?error=First+name+should+only+contain+alphabetic+characters')
-        if not last_name.isalpha():
+        if last_name.isdigit():
             error = "Last name should only contain alphabetic characters"
             return redirect('/signup?error=Last+name+should+only+contain+alphabetic+characters')
         if password != confirm_password:
