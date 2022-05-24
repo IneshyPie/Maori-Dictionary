@@ -20,6 +20,7 @@ import string
 # Declare constants
 # ~~~~~~~~~~~~~~~~~
 DATABASE = "database/dictionary.db"
+IMAGE_PATH = "static\\images\\"
 
 app = Flask(__name__)        # Create application object
 bcrypt = Bcrypt(app)         # Builds the password security platform
@@ -37,7 +38,7 @@ def get_connection(db_file):
 
 
 def get_image_filename(english_name):
-    path_file = f"static\\images\\{english_name}.*"
+    path_file = f"{IMAGE_PATH}{english_name}.*"
     listing = glob.glob(path_file)
     for filename in listing:
         return os.path.basename(filename)
@@ -49,6 +50,68 @@ def get_image_filenames(words):
     for word in words:
         image_names.append(get_image_filename(word[2]))
     return image_names
+
+
+def is_logged_in():
+    if session.get('email') is None:
+        return False
+    else:
+        return True
+
+
+def execute_query(query, args=None):
+    connection = get_connection(DATABASE)
+    cursor = connection.cursor()
+    try:
+        if args is None:
+            cursor.execute(query)
+        else:
+            cursor.execute(query, args)
+        query_results = cursor.fetchall()
+    except sqlite3.Error as e:
+        return e
+    finally:
+        if connection is not None:
+            connection.close()
+    return query_results
+
+
+def execute_command(command, args=None):
+    connection = get_connection(DATABASE)
+    cursor = connection.cursor()
+    sql = f"""{command}"""
+    try:
+        if args is None:
+            cursor.execute(sql)
+        else:
+            cursor.execute(sql, args)
+        connection.commit()
+    except sqlite3.Error as e:
+        return e
+    finally:
+        if connection is not None:
+            connection.close()
+    return
+
+
+def get_category_list():
+    category_list = execute_query("SELECT * FROM category ORDER BY category_name")
+    if issubclass(type(category_list), Error):
+        return []
+    return category_list
+
+
+def allow_edit():
+    if not is_logged_in():
+        return False
+    query = """SELECT allow_edit
+               FROM user_type
+               WHERE id = (SELECT user_type_id FROM user_details WHERE email = ?)"""
+    args = [session.get('email')]
+    query_results = execute_query(query, args)
+    if issubclass(type(query_results), Error) or len(query_results) == 0:
+        return False
+    return query_results[0][0]
 
 
 def get_search_results(maori, english, level, most_recent):
@@ -210,6 +273,37 @@ def get_search_results(maori, english, level, most_recent):
     return query_results
 
 
+def get_form_word_data(form):
+    maori = form.get("maori").strip()
+    english = form.get("english").strip()
+    description = form.get("description").strip()
+    level = form.get("level")
+    return maori, english, description, level
+
+
+@app.route('/action_delete_category/<id>', methods=["POST"])
+def action_delete_category(id):
+    if not is_logged_in() or not allow_edit():
+        return redirect('/')
+    response = execute_command("DELETE FROM category WHERE id = ?", [id])
+    if issubclass(type(response), Error):
+        redirect('/?error=Unknown+error+occurred+during+delete+of+category')
+    return redirect('/')
+
+
+@app.route('/action_delete_word/<id>', methods=["POST"])
+def action_delete_word(id):
+    if not is_logged_in() or not allow_edit():
+        return redirect('/')
+    response = execute_command("DELETE FROM dictionary WHERE id = ?", [id])
+    print(f"line 557: response: {response}")
+    print(f"line 557: id: {id}")
+    if issubclass(type(response), Error):
+        redirect('/?error=Unknown+error+occurred+during+delete+of+word')
+    breadcrumb = request.args.get("breadcrumb")
+    return redirect(f'{breadcrumb}')
+
+
 @app.route('/search/<letter>', methods=["POST", "GET"])
 def render_search(letter):
     selected = []
@@ -245,10 +339,7 @@ def render_search(letter):
 @app.route('/category/<id>', methods=["POST", "GET"])
 def render_category(id):
     if request.method == "POST":
-        maori = request.form.get("maori").strip()
-        english = request.form.get("english").strip()
-        description = request.form.get("description").strip()
-        level = request.form.get("level")
+        maori, english, description, level = get_form_word_data(request.form)
         email = session.get('email')
         query_results = execute_query("SELECT id FROM dictionary WHERE maori = ?", [maori])
         if issubclass(type(query_results), Error) or len(query_results) != 0:
@@ -285,10 +376,7 @@ def render_category(id):
 @app.route('/word/<id>', methods=["POST", "GET"])
 def render_word(id):
     if request.method == "POST":
-        maori = request.form.get("maori").strip()
-        english = request.form.get("english").strip()
-        description = request.form.get("description").strip()
-        level = request.form.get("level")
+        maori, english, description, level = get_form_word_data(request.form)
         email = session.get('email')
         query_results = execute_query("SELECT id FROM dictionary WHERE maori = ? AND id <> ?", [maori, id])
         if issubclass(type(query_results), Error) or len(query_results) != 0:
@@ -395,29 +483,6 @@ def render_delete_word(id):
                            , breadcrumb=breadcrumb)
 
 
-@app.route('/action_delete_category/<id>', methods=["POST"])
-def action_delete_category(id):
-    if not is_logged_in() or not allow_edit():
-        return redirect('/')
-    response = execute_command("DELETE FROM category WHERE id = ?", [id])
-    if issubclass(type(response), Error):
-        redirect('/?error=Unknown+error+occurred+during+delete+of+category')
-    return redirect('/')
-
-
-@app.route('/action_delete_word/<id>', methods=["POST"])
-def action_delete_word(id):
-    if not is_logged_in() or not allow_edit():
-        return redirect('/')
-    response = execute_command("DELETE FROM dictionary WHERE id = ?", [id])
-    print(f"line 557: response: {response}")
-    print(f"line 557: id: {id}")
-    if issubclass(type(response), Error):
-        redirect('/?error=Unknown+error+occurred+during+delete+of+word')
-    breadcrumb = request.args.get("breadcrumb")
-    return redirect(f'{breadcrumb}')
-
-
 @app.route('/addcategory', methods=["POST", "GET"])
 def render_add_category():
     if not is_logged_in() or not allow_edit():
@@ -427,7 +492,6 @@ def render_add_category():
         if category_name == "":
             return redirect('/addcategory?error=Please+enter+category+name')
         category_id = execute_query("SELECT id FROM category WHERE category_name = ?", [category_name])
-        print(f"line 574 category_id: {category_id}")
         if issubclass(type(category_id), Error) or len(category_id) != 0:
             return redirect('/addcategory?error=Category+already+exists')
         else:
@@ -445,112 +509,72 @@ def render_add_category():
                            , error=error)
 
 
+def validate_signup_data(request_form):
+    first_name = request.form.get("first_name").strip().title()
+    last_name = request.form.get("last_name").strip().title()
+    email = request.form.get("email").strip().lower()
+    password = request.form.get("password")
+    confirm_password = request.form.get("confirm_password")
+    user_type = request.form.get("user_type")
+    return_url = ""
+    error = ""
+    is_valid = True
+    if any(c.isdigit() for c in first_name):
+        is_valid = False
+        error = "First name should only contain alphabetic characters"
+        return_url = '/signup?error=First+name+should+only+contain+alphabetic+characters'
+    if any(c.isdigit() for c in last_name):
+        is_valid = False
+        error = "Last name should only contain alphabetic characters"
+        return_url = '/signup?error=Last+name+should+only+contain+alphabetic+characters'
+    if password != confirm_password:
+        is_valid = False
+        error = "Passwords don't match"
+        return_url = '/signup?error=Passwords+dont+match'
+    if len(password) < 8:
+        is_valid = False
+        error = "Passwords must be 8 characters or more"
+        return_url = '/signup?error=Passwords+must+be+8+characters+or+more'
+    if is_valid:
+        hashed_password = bcrypt.generate_password_hash(password)
+        success = add_user(first_name, last_name, email, hashed_password, user_type)
+        if not success:
+            error = "Email is already in use"
+            return_url = '/signup?error=Email+is+already+used'
+    return is_valid, error, return_url
+
+
+def add_user(first_name, last_name, email, hashed_password, user_type):
+    command = """INSERT INTO user_details 
+                 (first_name, last_name, email, password, user_type_id) 
+                 VALUES (?,?,?,?,(SELECT id from user_type WHERE user_type = ?))"""
+    args = [first_name, last_name, email, hashed_password, user_type]
+    response = execute_command(command, args)
+    if issubclass(type(response), Error):
+        return False
+    return True
+
+
 @app.route('/signup', methods=["POST", "GET"])
 def render_signup():
     if is_logged_in():
         return redirect('/')
     if request.method == "POST":
-        first_name = request.form.get("first_name").strip().title()
-        last_name = request.form.get("last_name").strip().title()
-        email = request.form.get("email").strip().lower()
-        password = request.form.get("password")
-        confirm_password = request.form.get("confirm_password")
-        user_type = request.form.get("user_type")
-        if first_name.isdigit():
-            error = "First name should only contain alphabetic characters"
-            return redirect('/signup?error=First+name+should+only+contain+alphabetic+characters')
-        if last_name.isdigit():
-            error = "Last name should only contain alphabetic characters"
-            return redirect('/signup?error=Last+name+should+only+contain+alphabetic+characters')
-        if password != confirm_password:
-            error = "Passwords don't match"
-            return redirect('/signup?error=Passwords+dont+match')
-        if len(password) < 8:
-            error = "Passwords must be 8 characters or more"
-            return redirect('/signup?error=Passwords+must+be+8+characters+or+more')
-        hashed_password = bcrypt.generate_password_hash(password)
-        command = """INSERT INTO user_details 
-                   (first_name, last_name, email, password, user_type_id) 
-                   VALUES (?,?,?,?,(SELECT id from user_type WHERE user_type = ?))"""
-        args = [first_name, last_name, email, hashed_password, user_type]
-        response = execute_command(command, args)
-        if issubclass(type(response), Error):
-            error = "Email is already in use"
-            return redirect('/signup?error=Email+is+already+used')
+        is_valid, error, return_url = validate_signup_data(request.form)
+        if not is_valid:
+            return redirect(return_url)
         return redirect('/login')
     error = request.args.get('error')
     return render_template('signup.html'
                            , logged_in=is_logged_in()
                            , category_list=get_category_list()
-                           , error = error)
-
-
-def get_category_list():
-    category_list = execute_query("SELECT * FROM category ORDER BY category_name")
-    if issubclass(type(category_list), Error):
-        return []
-    return category_list
-
-
-def allow_edit():
-    if not is_logged_in():
-        return False
-    query = """SELECT allow_edit
-               FROM user_type
-               WHERE id = (SELECT user_type_id FROM user_details WHERE email = ?)"""
-    args = [session.get('email')]
-    query_results = execute_query(query, args)
-    if issubclass(type(query_results), Error) or len(query_results) == 0:
-        return False
-    return query_results[0][0]
-
-
-def is_logged_in():
-    if session.get('email') is None:
-        return False
-    else:
-        return True
+                           , error=error)
 
 
 @app.route('/logout')
 def logout():
     [session.pop(key) for key in list(session.keys())]
     return redirect('/')
-
-
-def execute_query(query, args=None):
-    connection = get_connection(DATABASE)
-    cursor = connection.cursor()
-    try:
-        if args is None:
-            cursor.execute(query)
-        else:
-            cursor.execute(query, args)
-        query_results = cursor.fetchall()
-    except sqlite3.Error as e:
-        return e
-    finally:
-        if connection is not None:
-            connection.close()
-    return query_results
-
-
-def execute_command(command, args=None):
-    connection = get_connection(DATABASE)
-    cursor = connection.cursor()
-    sql = f"""{command}"""
-    try:
-        if args is None:
-            cursor.execute(sql)
-        else:
-            cursor.execute(sql, args)
-        connection.commit()
-    except sqlite3.Error as e:
-        return e
-    finally:
-        if connection is not None:
-            connection.close()
-    return
 
 
 @app.route('/login', methods=["POST", "GET"])
@@ -560,10 +584,12 @@ def render_login():
     if request.method == "POST":
         email = request.form["email"].strip().lower()
         password = request.form["password"].strip()
+        # Should be moved to service call is_valid_password(email, password)
         query_results = execute_query("SELECT password FROM user_details WHERE email = ?", [email])
         if issubclass(type(query_results), Error)\
             or len(query_results) == 0\
                 or not bcrypt.check_password_hash(query_results[0][0], password):
+            # If not TRUE then redirect with this message
             return redirect('/login?error=Email+invalid+or+password+incorrect')
         session['email'] = email
         return redirect('/')
