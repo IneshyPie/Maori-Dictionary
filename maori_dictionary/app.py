@@ -22,8 +22,8 @@ import string
 DATABASE = "database/dictionary.db"
 IMAGE_PATH = "static\\images\\"
 
-app = Flask(__name__)        # Create application object
-bcrypt = Bcrypt(app)         # Builds the password security platform
+app = Flask(__name__)  # Create application object
+bcrypt = Bcrypt(app)  # Builds the password security platform
 app.secret_key = "Duckyweu"  # The security key used
 
 
@@ -509,39 +509,34 @@ def render_add_category():
                            , error=error)
 
 
-def validate_signup_data(request_form):
-    first_name = request.form.get("first_name").strip().title()
-    last_name = request.form.get("last_name").strip().title()
-    email = request.form.get("email").strip().lower()
-    password = request.form.get("password")
-    confirm_password = request.form.get("confirm_password")
-    user_type = request.form.get("user_type")
+def validate_signup_user(signup_form):
+    first_name = signup_form.get("first_name").strip().title()
+    last_name = signup_form.get("last_name").strip().title()
+    email = signup_form.get("email").strip().lower()
+    password = signup_form.get("password")
+    confirm_password = signup_form.get("confirm_password")
+    user_type = signup_form.get("user_type")
     return_url = ""
-    error = ""
     is_valid = True
     if any(c.isdigit() for c in first_name):
         is_valid = False
-        error = "First name should only contain alphabetic characters"
         return_url = '/signup?error=First+name+should+only+contain+alphabetic+characters'
     if any(c.isdigit() for c in last_name):
         is_valid = False
-        error = "Last name should only contain alphabetic characters"
         return_url = '/signup?error=Last+name+should+only+contain+alphabetic+characters'
     if password != confirm_password:
         is_valid = False
-        error = "Passwords don't match"
         return_url = '/signup?error=Passwords+dont+match'
     if len(password) < 8:
         is_valid = False
-        error = "Passwords must be 8 characters or more"
         return_url = '/signup?error=Passwords+must+be+8+characters+or+more'
     if is_valid:
         hashed_password = bcrypt.generate_password_hash(password)
         success = add_user(first_name, last_name, email, hashed_password, user_type)
         if not success:
-            error = "Email is already in use"
+            is_valid = False
             return_url = '/signup?error=Email+is+already+used'
-    return is_valid, error, return_url
+    return is_valid, return_url
 
 
 def add_user(first_name, last_name, email, hashed_password, user_type):
@@ -560,7 +555,7 @@ def render_signup():
     if is_logged_in():
         return redirect('/')
     if request.method == "POST":
-        is_valid, error, return_url = validate_signup_data(request.form)
+        is_valid, return_url = validate_signup_user(request.form)
         if not is_valid:
             return redirect(return_url)
         return redirect('/login')
@@ -577,21 +572,30 @@ def logout():
     return redirect('/')
 
 
+def validate_login(login_form):
+    email = login_form["email"].strip().lower()
+    password = login_form["password"].strip()
+    stored_password = get_password(email)
+    if stored_password is None or not bcrypt.check_password_hash(stored_password, password):
+        return False
+    session['email'] = email  # Successful login store email
+    return True
+
+
+def get_password(email):
+    query_results = execute_query("SELECT password FROM user_details WHERE email = ?", [email])
+    if issubclass(type(query_results), Error) or len(query_results) == 0:
+        return None
+    return query_results[0][0]
+
+
 @app.route('/login', methods=["POST", "GET"])
 def render_login():
     if is_logged_in():
         return redirect('/')
     if request.method == "POST":
-        email = request.form["email"].strip().lower()
-        password = request.form["password"].strip()
-        # Should be moved to service call is_valid_password(email, password)
-        query_results = execute_query("SELECT password FROM user_details WHERE email = ?", [email])
-        if issubclass(type(query_results), Error)\
-            or len(query_results) == 0\
-                or not bcrypt.check_password_hash(query_results[0][0], password):
-            # If not TRUE then redirect with this message
+        if not validate_login(request.form):
             return redirect('/login?error=Email+invalid+or+password+incorrect')
-        session['email'] = email
         return redirect('/')
     error = request.args.get('error')
     if error is None:
