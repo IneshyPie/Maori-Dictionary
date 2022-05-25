@@ -437,27 +437,49 @@ def render_word(id):
 def render_delete_category(id):
     if not is_logged_in() or not allow_edit():
         return redirect('/')
-    query = """SELECT c.category_name, d.maori, d.english, d.id, c.id
-               FROM category c
-               LEFT JOIN dictionary d on c.id = d.category_id
-               WHERE c.id = ?
-               ORDER BY maori"""
-    query_results = execute_query(query, [id])
-    if issubclass(type(query_results), Error) or len(query_results) == 0:
+    category_words = get_category_words(id)
+    if category_words is None:
         return redirect('/?error=Unknown+error')
-    image_names = get_image_filenames(query_results)
+    image_names = get_image_filenames(category_words)
     return render_template('delete_category.html'
-                           , category_words=query_results
+                           , category_words=category_words
                            , logged_in=is_logged_in()
                            , image_names=image_names
                            , category_list=get_category_list()
                            , allow_edit=allow_edit())
 
 
+def get_category_words(category_id):
+    query = """SELECT c.category_name, d.maori, d.english, d.id, c.id
+               FROM category c
+               LEFT JOIN dictionary d on c.id = d.category_id
+               WHERE c.id = ?
+               ORDER BY maori"""
+    query_results = execute_query(query, [category_id])
+    if issubclass(type(query_results), Error) or len(query_results) == 0:
+        return None
+    return query_results
+
+
 @app.route('/delete_word/<id>')
 def render_delete_word(id):
     if not is_logged_in() or not allow_edit():
         return redirect('/')
+    word = get_word(id)
+    if word is None:
+        return redirect('/?error=Word+does+not+exist+or+unknown+error')
+    breadcrumb = request.args.get("breadcrumb")
+    if breadcrumb is None:
+        breadcrumb = "/"
+    return render_template('delete_word.html'
+                           , word_list=word
+                           , logged_in=is_logged_in()
+                           , image_name=get_image_filename(word[0][2])
+                           , category_list=get_category_list()
+                           , breadcrumb=breadcrumb)
+
+
+def get_word(dictionary_id):
     query = """SELECT d.id
                , d.maori
                , d.english
@@ -469,18 +491,42 @@ def render_delete_word(id):
                FROM dictionary d
                LEFT JOIN user_details u on d.user_id = u.id
                WHERE d.id = ?"""
-    query_results = execute_query(query, [id])
+    query_results = execute_query(query, [dictionary_id])
     if issubclass(type(query_results), Error) or len(query_results) == 0:
-        return redirect('/?error=Word+does+not+exist+or+unknown+error')
-    breadcrumb = request.args.get("breadcrumb")
-    if breadcrumb is None:
-        breadcrumb = "/"
-    return render_template('delete_word.html'
-                           , word_list=query_results
-                           , logged_in=is_logged_in()
-                           , image_name=get_image_filename(query_results[0][2])
-                           , category_list=get_category_list()
-                           , breadcrumb=breadcrumb)
+        return None
+    return query_results
+
+
+def validate_add_category(category_form):
+    category_name = category_form.get("category_name").strip().title()
+    return_url = ""
+    is_valid = True
+    if category_name == "":
+        is_valid = False
+        return_url = '/addcategory?error=Please+enter+category+name'
+    if category_already_exists(category_name):
+        is_valid = False
+        return_url = '/addcategory?error=Category+already+exists'
+    else:
+        success = add_category(category_name)
+        if not success:
+            is_valid = False
+            return_url = '/addcategory?error=Could+not+add+category+try+again+later'
+    return is_valid, return_url
+
+
+def category_already_exists(category_name):
+    category_ids = execute_query("SELECT id FROM category WHERE category_name = ?", [category_name])
+    if issubclass(type(category_ids), Error) or len(category_ids) != 0:
+        return True
+    return False
+
+
+def add_category(category_name):
+    response = execute_command("INSERT INTO category (category_name) VALUES (?)", [category_name])
+    if issubclass(type(response), Error):
+        return False
+    return True
 
 
 @app.route('/addcategory', methods=["POST", "GET"])
@@ -488,16 +534,9 @@ def render_add_category():
     if not is_logged_in() or not allow_edit():
         return redirect('/')
     if request.method == "POST":
-        category_name = request.form.get("category_name").strip().title()
-        if category_name == "":
-            return redirect('/addcategory?error=Please+enter+category+name')
-        category_id = execute_query("SELECT id FROM category WHERE category_name = ?", [category_name])
-        if issubclass(type(category_id), Error) or len(category_id) != 0:
-            return redirect('/addcategory?error=Category+already+exists')
-        else:
-            response = execute_command("INSERT INTO category (category_name) VALUES (?)", [category_name])
-            if issubclass(type(response), Error):
-                return redirect('/addcategory?error=Could+not+add+category+try+again+later')
+        is_valid, return_url = validate_add_category(request.form)
+        if not is_valid:
+            return redirect(return_url)
         return redirect('/addcategory')
     error = request.args.get('error')
     if error is None:
