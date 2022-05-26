@@ -273,11 +273,11 @@ def get_search_results(maori, english, level, most_recent):
     return query_results
 
 
-def get_form_word_data(form):
-    maori = form.get("maori").strip()
-    english = form.get("english").strip()
-    description = form.get("description").strip()
-    level = form.get("level")
+def get_word_form_data(word_form):
+    maori = word_form.get("maori").strip()
+    english = word_form.get("english").strip()
+    description = word_form.get("description").strip()
+    level = word_form.get("level")
     return maori, english, description, level
 
 
@@ -339,33 +339,19 @@ def render_search(letter):
 @app.route('/category/<id>', methods=["POST", "GET"])
 def render_category(id):
     if request.method == "POST":
-        maori, english, description, level = get_form_word_data(request.form)
-        email = session.get('email')
-        query_results = execute_query("SELECT id FROM dictionary WHERE maori = ?", [maori])
-        if issubclass(type(query_results), Error) or len(query_results) != 0:
-            return redirect(f"/category/{id}?error=The+word+{maori}+already+exists")
-        else:
-            command = """INSERT INTO dictionary (maori, english, description, level, category_id, date_added, user_id)
-                           VALUES (?, ?, ?, ?, ?, date(), (SELECT id FROM user_details WHERE email = ?))"""
-            args = [maori, english, description, level, id, email]
-            response = execute_command(command, args)
-            if issubclass(type(response), Error):
-                redirect(f"/category/{id}?error=The+word+{maori}+already+exists")
-            return redirect(f'/category/{id}')
-    query = """SELECT c.category_name, d.maori, d.english, d.id, c.id
-               FROM category c
-               LEFT JOIN dictionary d on c.id = d.category_id
-               WHERE c.id = ?
-               ORDER BY maori"""
-    query_results = execute_query(query, [id])
-    if issubclass(type(query_results), Error):
+        is_valid, return_url = validate_add_word(request.form, id)
+        if not is_valid:
+            return redirect(return_url)
+        return redirect(f'/category/{id}')
+    words = get_words(id)
+    if words is None:
         return redirect('/?error=Category+could+not+be+retrieved+unknown+error')
-    image_names = get_image_filenames(query_results)
+    image_names = get_image_filenames(words)
     error = request.args.get('error')
     if error is None:
         error = ""
     return render_template('category.html'
-                           , category_words=query_results
+                           , category_words=words
                            , logged_in=is_logged_in()
                            , image_names=image_names
                            , error=error
@@ -373,49 +359,62 @@ def render_category(id):
                            , allow_edit=allow_edit())
 
 
+def validate_add_word(word_form, category_id):
+    maori, english, description, level = get_word_form_data(word_form)
+    email = session.get('email')
+    is_valid = True
+    return_url = ""
+    if word_already_exists(maori):
+        is_valid = False
+        return_url = f"/category/{category_id}?error=The+word+{maori}+already+exists"
+    else:
+        success = insert_word(maori, english, description, level, category_id, email)
+        if not success:
+            is_valid = False
+            return_url = f"/category/{category_id}?error=The+word+{maori}+already+exists"
+    return is_valid, return_url
+
+
+def word_already_exists(maori):
+    query_results = execute_query("SELECT id FROM dictionary WHERE maori = ?", [maori])
+    if issubclass(type(query_results), Error) or len(query_results) != 0:
+        return True
+    return False
+
+
+def insert_word(maori, english, description, level, category_id, email):
+    command = """INSERT INTO dictionary (maori, english, description, level, category_id, date_added, user_id)
+                 VALUES (?, ?, ?, ?, ?, date(), (SELECT id FROM user_details WHERE email = ?))"""
+    args = [maori, english, description, level, category_id, email]
+    response = execute_command(command, args)
+    if issubclass(type(response), Error):
+        return False
+    return True
+
+
+def get_words(category_id):
+    query = """SELECT c.category_name, d.maori, d.english, d.id, c.id
+               FROM category c
+               LEFT JOIN dictionary d on c.id = d.category_id
+               WHERE c.id = ?
+               ORDER BY maori"""
+    query_results = execute_query(query, [category_id])
+    if issubclass(type(query_results), Error) or len(query_results) == 0:
+        return None
+    return query_results
+
+
 @app.route('/word/<id>', methods=["POST", "GET"])
 def render_word(id):
     if request.method == "POST":
-        maori, english, description, level = get_form_word_data(request.form)
-        email = session.get('email')
-        query_results = execute_query("SELECT id FROM dictionary WHERE maori = ? AND id <> ?", [maori, id])
-        if issubclass(type(query_results), Error) or len(query_results) != 0:
-            return redirect(f"/word/{id}?error=The+word+'{maori}'+already+exists")
-        else:
-            command = """UPDATE dictionary
-                     SET maori = ?,
-                        english = ?,
-                        description = ?,
-                        level = ?,
-                        user_id = (SELECT id FROM user_details WHERE email = ?),
-                        date_added = date()
-                     WHERE id = ?
-                     AND (
-                            maori <> ? OR
-                            english <> ? OR
-                            description <> ? OR
-                            level <> ?
-                         )"""
-            args = [maori, english, description, level, email, id, maori, english, description, level]
-            response = execute_command(command, args)
-            if issubclass(type(response), Error):
-                redirect('/?error=Update+failed+try+again+later')
-            breadcrumb = request.args.get("breadcrumb")
-            return redirect(f'/word/{id}?breadcrumb={breadcrumb}')
-    query = """SELECT d.id, d.maori, d.english, d.description, d.level, d.date_added, ifnull(u.first_name, ''), ifnull(u.last_name, '')
-               FROM dictionary d
-               LEFT JOIN user_details u on d.user_id = u.id
-               WHERE d.id = ?"""
-    query_results = execute_query(query, [id])
-    if issubclass(type(query_results), Error) or len(query_results) == 0:
+        is_valid, return_url = validate_update_word(request.form, id)
+        if not is_valid:
+            return redirect(return_url)
+        breadcrumb = request.args.get("breadcrumb")
+        return redirect(f'/word/{id}?breadcrumb={breadcrumb}')
+    word = get_word(id)
+    if word is None:
         return redirect('/?error=Word+could+not+be+retrieved+unknown+error')
-    checked = []
-    for i in range(1, 11):
-        print(i)
-        if query_results[0][4] == i:
-            checked.append("checked")
-        else:
-            checked.append("")
     error = request.args.get('error')
     if error is None:
         error = ""
@@ -423,14 +422,69 @@ def render_word(id):
     if breadcrumb is None:
         breadcrumb = "/"
     return render_template('word.html'
-                           , word_details=query_results
+                           , word_details=word
                            , logged_in=is_logged_in()
                            , error=error
-                           , image_name=get_image_filename(query_results[0][2])
-                           , checked=checked
+                           , image_name=get_image_filename(word[0][2])
+                           , checked=get_checked(word[0][4])
                            , category_list=get_category_list()
                            , allow_edit=allow_edit()
                            , breadcrumb=breadcrumb)
+
+
+def validate_update_word(word_form, word_id):
+    maori, english, description, level = get_word_form_data(word_form)
+    email = session.get('email')
+    is_valid = True
+    return_url = ""
+    if word_already_exists_in_dictionary(maori, word_id):
+        is_valid = False
+        return_url = f"/word/{word_id}?error=The+word+'{maori}'+already+exists+in+dictionary"
+    else:
+        success = update_word(maori, english, description, level, email, word_id)
+        if not success:
+            is_valid = False
+            return_url = '/?error=Update+failed+try+again+later'
+    return is_valid, return_url
+
+
+def word_already_exists_in_dictionary(maori, word_id):
+    query_results = execute_query("SELECT id FROM dictionary WHERE maori = ? AND id <> ?", [maori, word_id])
+    if issubclass(type(query_results), Error) or len(query_results) != 0:
+        return True
+    return False
+
+
+def update_word(maori, english, description, level, email, word_id):
+    command = """UPDATE dictionary
+             SET maori = ?,
+                english = ?,
+                description = ?,
+                level = ?,
+                user_id = (SELECT id FROM user_details WHERE email = ?),
+                date_added = date()
+             WHERE id = ?
+             AND (
+                    maori <> ? OR
+                    english <> ? OR
+                    description <> ? OR
+                    level <> ?
+                 )"""
+    args = [maori, english, description, level, email, word_id, maori, english, description, level]
+    response = execute_command(command, args)
+    if issubclass(type(response), Error):
+        return False
+    return True
+
+
+def get_checked(level):
+    checked = []
+    for i in range(1, 11):
+        if level == i:
+            checked.append("checked")
+        else:
+            checked.append("")
+    return checked
 
 
 @app.route('/delete_category/<id>')
@@ -441,12 +495,12 @@ def render_delete_category(id):
     if category_words is None:
         return redirect('/?error=Unknown+error')
     image_names = get_image_filenames(category_words)
-    return render_template('delete_category.html'
-                           , category_words=category_words
-                           , logged_in=is_logged_in()
-                           , image_names=image_names
-                           , category_list=get_category_list()
-                           , allow_edit=allow_edit())
+    return render_template('delete_category.html',
+                           category_words=category_words,
+                           logged_in=is_logged_in(),
+                           image_names=image_names,
+                           category_list=get_category_list(),
+                           allow_edit=allow_edit())
 
 
 def get_category_words(category_id):
@@ -479,7 +533,7 @@ def render_delete_word(id):
                            , breadcrumb=breadcrumb)
 
 
-def get_word(dictionary_id):
+def get_word(word_id):
     query = """SELECT d.id
                , d.maori
                , d.english
@@ -491,7 +545,7 @@ def get_word(dictionary_id):
                FROM dictionary d
                LEFT JOIN user_details u on d.user_id = u.id
                WHERE d.id = ?"""
-    query_results = execute_query(query, [dictionary_id])
+    query_results = execute_query(query, [word_id])
     if issubclass(type(query_results), Error) or len(query_results) == 0:
         return None
     return query_results
