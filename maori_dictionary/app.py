@@ -94,24 +94,31 @@ def execute_command(command, args=None):
     return
 
 
+def allow_edit():
+    if not is_logged_in():
+        return False
+    email = session.get('email')
+    allow = get_allow_edit(email)
+    if allow is None:
+        return False
+    return allow
+
+
+def get_allow_edit(email):
+    query = """SELECT allow_edit
+               FROM user_type
+               WHERE id = (SELECT user_type_id FROM user_details WHERE email = ?)"""
+    query_results = execute_query(query, [email])
+    if issubclass(type(query_results), Error) or len(query_results) == 0:
+        return None
+    return query_results[0][0]
+
+
 def get_category_list():
     category_list = execute_query("SELECT * FROM category ORDER BY category_name")
     if issubclass(type(category_list), Error):
         return []
     return category_list
-
-
-def allow_edit():
-    if not is_logged_in():
-        return False
-    query = """SELECT allow_edit
-               FROM user_type
-               WHERE id = (SELECT user_type_id FROM user_details WHERE email = ?)"""
-    args = [session.get('email')]
-    query_results = execute_query(query, args)
-    if issubclass(type(query_results), Error) or len(query_results) == 0:
-        return False
-    return query_results[0][0]
 
 
 def get_search_results(maori, english, level, most_recent):
@@ -120,7 +127,7 @@ def get_search_results(maori, english, level, most_recent):
     maori_search = f"{maori}%"
     english_search = f"{english}%"
     level_search = f"{level}"
-    if maori != "" or english != "" or level != "0" and most_recent == "1":
+    if (maori != "" or english != "" or level != "0") and most_recent == "1":
         if maori != "" and english != "" and level == "0":
             query = """SELECT d.id, d.maori, d.english, d.level, d.date_added, ifnull(u.first_name, ''), ifnull(u.last_name, '')
                      FROM dictionary d
@@ -128,7 +135,8 @@ def get_search_results(maori, english, level, most_recent):
                      WHERE 
                      maori LIKE ? AND 
                      english LIKE ?
-                     ORDER BY date_added DESC, maori  LIMIT 20
+                     ORDER BY date_added DESC, maori
+                     LIMIT 20
                      """
             args = [maori_search, english_search]
         if maori != "" and english == "" and level != "0":
@@ -138,7 +146,8 @@ def get_search_results(maori, english, level, most_recent):
                      WHERE 
                      maori LIKE ? AND 
                      level = ?
-                     ORDER BY date_added DESC, maori  LIMIT 20
+                     ORDER BY date_added DESC, maori
+                     LIMIT 20
                      """
             args = [maori_search, level_search]
         if maori == "" and english != "" and level != "0":
@@ -148,7 +157,8 @@ def get_search_results(maori, english, level, most_recent):
                      WHERE 
                      english LIKE ? AND 
                      level = ?
-                     ORDER BY date_added DESC, maori  LIMIT 20
+                     ORDER BY date_added DESC, maori
+                     LIMIT 20
                      """
             args = [english_search, level_search]
         if maori != "" and english == "" and level == "0":
@@ -157,7 +167,8 @@ def get_search_results(maori, english, level, most_recent):
                      LEFT JOIN user_details u on d.user_id = u.id
                      WHERE 
                      maori LIKE ?
-                     ORDER BY date_added DESC, maori  LIMIT 20 
+                     ORDER BY date_added DESC, maori
+                     LIMIT 20 
                      """
             args = [maori_search]
         if maori == "" and english != "" and level == "0":
@@ -166,7 +177,8 @@ def get_search_results(maori, english, level, most_recent):
                      LEFT JOIN user_details u on d.user_id = u.id
                      WHERE 
                      english LIKE ?
-                     ORDER BY date_added DESC, maori  LIMIT 20
+                     ORDER BY date_added DESC, maori
+                     LIMIT 20
                      """
             args = [english_search]
         if maori == "" and english == "" and level != "0":
@@ -175,7 +187,8 @@ def get_search_results(maori, english, level, most_recent):
                      LEFT JOIN user_details u on d.user_id = u.id
                      WHERE 
                      level = ?
-                     ORDER BY date_added DESC, maori  LIMIT 20
+                     ORDER BY date_added DESC, maori
+                     LIMIT 20
                      """
             args = [level_search]
         if maori != "" and english != "" and level != "0":
@@ -186,10 +199,11 @@ def get_search_results(maori, english, level, most_recent):
                      maori LIKE ? AND
                      english LIKE ? AND
                      level = ?
-                     ORDER BY date_added DESC, maori  LIMIT 20
+                     ORDER BY date_added DESC, maori
+                     LIMIT 20
                      """
             args = [maori_search, english_search, level_search]
-    elif maori != "" or english != "" or level != "0" and most_recent == "0":
+    elif (maori != "" or english != "" or level != "0") and most_recent == "0":
         if maori != "" and english != "" and level == "0":
             query = """SELECT d.id, d.maori, d.english, d.level, d.date_added, ifnull(u.first_name, ''), ifnull(u.last_name, '')
                      FROM dictionary d
@@ -262,78 +276,132 @@ def get_search_results(maori, english, level, most_recent):
         query = """SELECT d.id, d.maori, d.english, d.level, d.date_added, ifnull(u.first_name, ''), ifnull(u.last_name, '')
                  FROM dictionary d
                  LEFT JOIN user_details u on d.user_id = u.id
-                 ORDER BY date_added DESC, maori  LIMIT 20
+                 ORDER BY date_added DESC, maori
+                 LIMIT 20
                  """
+    else:
+        return []
     if len(args) == 0:
         query_results = execute_query(query)
     else:
         query_results = execute_query(query, args)
     if issubclass(type(query_results), Error):
-        redirect('/?error=has+occurred')
+        return None
     return query_results
 
 
+def get_form_data(form):
+    maori = form.get("maori").strip()
+    english = form.get("english").strip()
+    level = form.get("level")
+    return maori, english, level
+
+
 def get_word_form_data(word_form):
-    maori = word_form.get("maori").strip()
-    english = word_form.get("english").strip()
+    maori, english, level = get_form_data(word_form)
     description = word_form.get("description").strip()
-    level = word_form.get("level")
     return maori, english, description, level
+
+
+def get_search_form_data(search_form):
+    maori, english, level = get_form_data(search_form)
+    most_recent = search_form.get("Date-Added").strip()
+    return maori, english, level, most_recent
 
 
 @app.route('/action_delete_category/<id>', methods=["POST"])
 def action_delete_category(id):
     if not is_logged_in() or not allow_edit():
         return redirect('/')
-    response = execute_command("DELETE FROM category WHERE id = ?", [id])
-    if issubclass(type(response), Error):
-        redirect('/?error=Unknown+error+occurred+during+delete+of+category')
+    success = delete_category(id)
+    if not success:
+        redirect('/?error=Unknown+error+occurred+during+delete+of+category+please+try+again+later')
     return redirect('/')
+
+
+def delete_category(category_id):
+    response = execute_command("DELETE FROM category WHERE id = ?", [category_id])
+    if issubclass(type(response), Error):
+        return False
+    return True
 
 
 @app.route('/action_delete_word/<id>', methods=["POST"])
 def action_delete_word(id):
     if not is_logged_in() or not allow_edit():
         return redirect('/')
-    response = execute_command("DELETE FROM dictionary WHERE id = ?", [id])
-    print(f"line 557: response: {response}")
-    print(f"line 557: id: {id}")
-    if issubclass(type(response), Error):
-        redirect('/?error=Unknown+error+occurred+during+delete+of+word')
+    success = delete_word(id)
+    if not success:
+        redirect('/?error=Unknown+error+occurred+during+delete+of+word+please+try+again+later')
     breadcrumb = request.args.get("breadcrumb")
     return redirect(f'{breadcrumb}')
 
 
+def delete_word(word_id):
+    response = execute_command("DELETE FROM dictionary WHERE id = ?", [word_id])
+    if issubclass(type(response), Error):
+        return False
+    return True
+
+
 @app.route('/search/<letter>', methods=["POST", "GET"])
 def render_search(letter):
-    selected = []
+    error = ""
     if request.method == "POST":
-        maori = request.form.get("maori").strip()
-        english = request.form.get("english").strip()
-        level = request.form.get("level").strip()
-        most_recent = request.form.get("Date-Added").strip()
-        if maori == "" and english == "" and level == "0" and most_recent == "0":
-            return render_template('search.html'
-                                   , search_results=[]
-                                   , logged_in=is_logged_in()
-                                   , category_list=get_category_list()
-                                   , selected=selected)
-        search_results = get_search_results(maori, english, level, most_recent)
+        search_letter = ""
+        search_results = do_search_by_form(request.form)
     else:
         search_results = []
-        if letter != "~":
-            query = """SELECT d.id, d.maori, d.english, d.level, d.date_added, ifnull(u.first_name, ''), ifnull(u.last_name, '')
-                       FROM dictionary d
-                       LEFT JOIN user_details u on d.user_id = u.id
-                       WHERE maori LIKE ?
-                       ORDER BY maori"""
-            search_results = execute_query(query, [f"{letter}%"])
-            if issubclass(type(search_results), Error):
-                return redirect('/?error=Unknown+error')
-            selected = ["" for i in range(26)]
-            selected[string.ascii_lowercase.index(letter.lower())] = "selected"
-    return render_template("search.html", search_results=search_results, logged_in=is_logged_in(), letter=letter,
-                           category_list=get_category_list(), selected=selected, allow_edit=allow_edit())
+        search_letter = letter
+        error = request.args.get('error')
+        if error is None:
+            error = ""
+            search_results = do_search_by_browse(letter)
+    if search_results is None:
+        return redirect(f'/search/~?error=Unknown+error+has+occurred+during+search+please+try+again+later')
+    return render_template('search.html',
+                           search_results=search_results,
+                           logged_in=is_logged_in(),
+                           letter=letter,
+                           category_list=get_category_list(),
+                           selected=get_selected(search_letter),
+                           allow_edit=allow_edit(),
+                           error=error)
+
+
+def do_search_by_form(search_form):
+    maori, english, level, most_recent = get_search_form_data(search_form)
+    if maori == "" and english == "" and level == "0" and most_recent == "0":
+        return []
+    return get_search_results(maori, english, level, most_recent)
+
+
+def do_search_by_browse(letter):
+    search_results = []
+    if letter.isalpha() and letter != "~" and len(letter) == 1:
+        search_results = get_browse_results(letter)
+    return search_results
+
+
+def get_selected(alphabetic_letter):
+    selected = []
+    if alphabetic_letter.isalpha() and len(alphabetic_letter) == 1:
+        for i in range(26):
+            selected.append("")
+        selected[string.ascii_lowercase.index(alphabetic_letter.lower())] = "selected"
+    return selected
+
+
+def get_browse_results(letter):
+    query = """SELECT d.id, d.maori, d.english, d.level, d.date_added, ifnull(u.first_name, ''), ifnull(u.last_name, '')
+               FROM dictionary d
+               LEFT JOIN user_details u on d.user_id = u.id
+               WHERE maori LIKE ?
+               ORDER BY maori"""
+    query_results = execute_query(query, [f"{letter}%"])
+    if issubclass(type(query_results), Error):
+        return None
+    return query_results
 
 
 @app.route('/category/<id>', methods=["POST", "GET"])
