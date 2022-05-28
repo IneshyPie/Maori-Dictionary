@@ -149,7 +149,8 @@ def render_delete_word(id):
                            , logged_in=is_logged_in()
                            , image_name=get_image_filename(word[0][2])
                            , category_list=get_category_list()
-                           , breadcrumb=breadcrumb)
+                           , breadcrumb=breadcrumb,
+                           allow_edit=allow_edit())
 
 
 @app.route('/addcategory', methods=["POST", "GET"])
