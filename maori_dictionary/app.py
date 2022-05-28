@@ -81,8 +81,6 @@ def render_category(id):
         return redirect('/?error=Category+could+not+be+retrieved+unknown+error')
     image_names = get_image_filenames(words)
     error = request.args.get('error')
-    if error is None:
-        error = ""
     return render_template('category.html'
                            , category_words=words
                            , logged_in=is_logged_in()
@@ -105,8 +103,6 @@ def render_word(id):
     if word is None:
         return redirect('/?error=Word+could+not+be+retrieved+unknown+error')
     error = request.args.get('error')
-    if error is None:
-        error = ""
     breadcrumb = request.args.get("breadcrumb")
     if breadcrumb is None:
         breadcrumb = "/"
@@ -169,8 +165,6 @@ def render_add_category():
             return redirect(return_url)
         return redirect('/addcategory')
     error = request.args.get('error')
-    if error is None:
-        error = ""
     return render_template('add_category.html'
                            , logged_in=is_logged_in()
                            , category_list=get_categories()
@@ -211,8 +205,6 @@ def render_login():
             return redirect('/login?error=Email+invalid+or+password+incorrect')
         return redirect('/')
     error = request.args.get('error')
-    if error is None:
-        error = ""
     return render_template('login.html'
                            , logged_in=is_logged_in()
                            , category_list=get_categories()

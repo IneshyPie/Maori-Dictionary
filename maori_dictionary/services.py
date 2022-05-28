@@ -142,11 +142,11 @@ def validate_add_category(category_form):
     if category_name == "":
         is_valid = False
         return_url = '/addcategory?error=Please+enter+category+name'
-    success = add_category(category_name)
-    if not success:
-        is_valid = False
-        return_url = '/addcategory?error=Category+already+exists'
-
+    else:
+        success = add_category(category_name)
+        if not success:
+            is_valid = False
+            return_url = '/addcategory?error=Category+already+exists'
     return is_valid, return_url
 
 
@@ -184,7 +184,7 @@ def validate_login(login_form):
     email = login_form["email"].strip().lower()
     password = login_form["password"].strip()
     user_details = get_user_details(email)
-    if user_details[0][2] is None or not bcrypt.check_password_hash(user_details[0][2], password):
+    if user_details is None or not bcrypt.check_password_hash(user_details[0][2], password):
         return False
     session['email'] = email
     session['first_name'] = user_details[0][0]
