@@ -6,18 +6,19 @@
 
 {% block main %}
     <h2>{{ word_list[0][1] }} ({{ word_list[0][2] }})<strong> - Ready to Delete</strong></h2>
-    <form class="dataForm" method="post" action="/action_delete_word/{{ word_list[0][0] }}?breadcrumb={{ breadcrumb }}" class="inline"/>
-    <div id = "delete_word" class="form-group">
-        <p>Are you sure you wish to delete the word <strong>{{ word_list[0][1] }} ({{ word_list[0][2] }})</strong>
-        <button type="submit" name="submit_param" value="submit_value" class="link-button">Yes</button>
-        / <a href="/word/{{ word_list[0][0] }}?breadcrumb={{ breadcrumb }}">No</a></p>
-    </div>
-<table class="word-table">
+    <form class="dataForm" method="post" action="/action_delete_word/{{ word_list[0][0] }}?breadcrumb={{ breadcrumb }}">
+        <div id = "delete_word" class="form-group">
+            <p>Are you sure you wish to delete the word <strong>{{ word_list[0][1] }} ({{ word_list[0][2] }})</strong>
+            <button type="submit" name="submit_param" value="submit_value" class="link-button">Yes</button>
+            / <a href="/word/{{ word_list[0][0] }}?breadcrumb={{ breadcrumb }}">No</a></p>
+        </div>
+    </form>
+    <table class="word-table">
         <tbody>
             {% if maori != None %}
                 <tr>
                     <td><strong>Description: </strong></td>
-                    <td>{{ word_list[0][3] }}</td>
+                    <td class="description-wrap">{{ word_list[0][3] }}</td>
                 </tr>
                 <tr>
                     <td><strong>Level: </strong></td>
@@ -31,7 +32,7 @@
                     <td><strong>Edited By: </strong></td>
                     <td>{{ word_list[0][7] }} {{ word_list[0][8] }}</td>
                 </tr>
-                    <td colspan="2"><img src= "../static/images/{{ image_name }}"></td>
+                    <td colspan="2"><img src= "../static/images/{{ image_name }}" alt="Word image"></td>
             {% endif %}
         </tbody>
     </table>

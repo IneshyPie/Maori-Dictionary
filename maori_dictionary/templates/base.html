@@ -10,7 +10,6 @@
 
 <body>
 	<div id="container">
-
 		<header>
 			<span class="heading">Maōri - English Dictionary</span>
             <span class="right">{{ current_user }}</span>
@@ -18,35 +17,31 @@
 		<nav style="padding-top: 0">
 			<ul>
                 <div class="main-links">
-                <li><a href="/" style="color: black;">Home</a></li>
-				<li><a href="/search/~" style="color: black;">Search</a></li>
-				{% if logged_in %}
-                    {% if allow_edit %}
-					    <li><a href="/addcategory" style="color: black;">Add Category</a></li>
+                    <li><a href="/" style="color: black;">Home</a></li>
+                    <li><a href="/search/~" style="color: black;">Search</a></li>
+                    {% if logged_in %}
+                        {% if allow_edit %}
+                            <li><a href="/add_category" style="color: black;">Add Category</a></li>
+                        {% endif %}
+                        <li><a href="/logout" style="color: black;">Logout</a></li>
+                    {% else %}
+                        <li><a href="/login" style="color: black;">login</a></li>
                     {% endif %}
-					<li><a href="/logout" style="color: black;">Logout</a></li>
-                {% else %}
-                    <li><a href="/login" style="color: black;">login</a></li>
-                {% endif %}
                 </div>
-            <br>
+                <br>
                 {% for category in category_list %}
                     <li><a href="/category/{{ category[0] }}">{{ category[1] }}</a></li>
                 {% endfor %}
 			</ul>
 		</nav>
-
 		<main style="border: solid black 2px">
             {% block main %}{% endblock %}
         </main>
-
 		<footer>
-			<span>
+			<p>
 				&copy; Inesh Bhanuka 2022
-			</span>
-            <span>jeff</span>
+			</p>
 		</footer>
-
 	</div>
 </body>
 </html>

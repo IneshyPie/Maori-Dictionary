@@ -24,7 +24,7 @@
                     {% if word[1] != None %}
                         <td><a href="\word\{{ word[3] }}?breadcrumb=/category/{{ category_words[0][4] }}">{{ word[1] }}</a></td>
                         <td>{{ word[2] }}</td>
-                        <td><img class="thumb" src= "../static/images/{{ image_names[loop.index0]}}"></td>
+                        <td><img class="thumb" src= "../static/images/{{ image_names[loop.index0]}}" alt="Word image"></td>
                     {% endif %}
                 </tr>
             {% endfor %}
@@ -79,6 +79,5 @@
             <div class="form-group">
             </div>
         </form>
-
     {% endif %}
 {% endblock %}

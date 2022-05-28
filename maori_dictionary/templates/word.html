@@ -22,7 +22,7 @@
             {% if maori != None %}
                 <tr>
                     <td><strong>Description: </strong></td>
-                    <td>{{ description }}</td>
+                    <td class="description-wrap">{{ description }}</td>
                 </tr>
                 <tr>
                     <td><strong>Level: </strong></td>
@@ -36,61 +36,60 @@
                     <td><strong>Edited By: </strong></td>
                     <td>{{ edited_by }}</td>
                 </tr>
-                    <td colspan="2"><img src= "../static/images/{{ image }}"></td>
+                    <td colspan="2"><img src= "../static/images/{{ image }}" alt="Word image"></td>
             {% endif %}
         </tbody>
     </table>
-
-{% if logged_in and allow_edit %}
-<form id = "edit_word" class="dataForm" method="post">
-            <h3>Edit Word</h3>
-            <div class="form-group">
-                <div class="form-label">Maori</div>
-                <div class="form-element"><input type="text" name = "maori" value = "{{ maori }}" maxlength="30" required></div>
-            </div>
-            <div class="form-group">
-                <div class="form-label">English</div>
-                <div class="form-element"><input type="text" name = "english" value= "{{ english }}" maxlength="30" required></div>
-            </div>
-            <div class="form-group">
-                <div class="form-label">Description</div>
-                <div class="form-element"><textarea name="description" form="edit_word" maxlength="1000" required>{{ description }}</textarea></div>
-            </div>
-            <div class="form-group">
-                <div class="form-label">Level</div>
-                    <div>
-                        <input type="radio" id="1" name="level" value="1" {{ checked[0] }}>
-                        <label for="1">1</label>
-                        <input type="radio" id="2" name="level" value="2" {{ checked[1] }}>
-                        <label for="2">2</label>
-                        <input type="radio" id="3" name="level" value="3" {{ checked[2] }}>
-                        <label for="3">3</label>
-                        <input type="radio" id="4" name="level" value="4" {{ checked[3] }}>
-                        <label for="4">4</label>
-                        <input type="radio" id="5" name="level" value="5" {{ checked[4] }}>
-                        <label for="5">5</label>
-                        <input type="radio" id="6" name="level" value="6" {{ checked[5] }}>
-                        <label for="6">6</label>
-                        <input type="radio" id="7" name="level" value="7" {{ checked[6] }}>
-                        <label for="7">7</label>
-                        <input type="radio" id="8" name="level" value="8" {{ checked[7] }}>
-                        <label for="8">8</label>
-                        <input type="radio" id="9" name="level" value="9" {{ checked[8] }}>
-                        <label for="9">9</label>
-                        <input type="radio" id="10" name="level" value="10" {{ checked[9] }}>
-                        <label for="10">10</label>
-                    </div>
-                    <div class="error">
-                        {% if error != None %}
-                            {{ error }}
-                        {% endif %}
-                    </div>
+    {% if logged_in and allow_edit %}
+    <form id = "edit_word" class="dataForm" method="post">
+                <h3>Edit Word</h3>
                 <div class="form-group">
-                    <div id = "word-submit" class="form-element"><input style="background-color: lightgray;" type="submit" name = "submit" id = "submit"></div>
+                    <div class="form-label">Maori</div>
+                    <div class="form-element"><input type="text" name = "maori" value = "{{ maori }}" maxlength="30" required></div>
                 </div>
-            </div>
-            <div class="form-group">
-            </div>
-        </form>
-{% endif %}
+                <div class="form-group">
+                    <div class="form-label">English</div>
+                    <div class="form-element"><input type="text" name = "english" value= "{{ english }}" maxlength="30" required></div>
+                </div>
+                <div class="form-group">
+                    <div class="form-label">Description</div>
+                    <div class="form-element"><textarea name="description" form="edit_word" maxlength="1000" required>{{ description }}</textarea></div>
+                </div>
+                <div class="form-group">
+                    <div class="form-label">Level</div>
+                        <div>
+                            <input type="radio" id="1" name="level" value="1" {{ checked[0] }}>
+                            <label for="1">1</label>
+                            <input type="radio" id="2" name="level" value="2" {{ checked[1] }}>
+                            <label for="2">2</label>
+                            <input type="radio" id="3" name="level" value="3" {{ checked[2] }}>
+                            <label for="3">3</label>
+                            <input type="radio" id="4" name="level" value="4" {{ checked[3] }}>
+                            <label for="4">4</label>
+                            <input type="radio" id="5" name="level" value="5" {{ checked[4] }}>
+                            <label for="5">5</label>
+                            <input type="radio" id="6" name="level" value="6" {{ checked[5] }}>
+                            <label for="6">6</label>
+                            <input type="radio" id="7" name="level" value="7" {{ checked[6] }}>
+                            <label for="7">7</label>
+                            <input type="radio" id="8" name="level" value="8" {{ checked[7] }}>
+                            <label for="8">8</label>
+                            <input type="radio" id="9" name="level" value="9" {{ checked[8] }}>
+                            <label for="9">9</label>
+                            <input type="radio" id="10" name="level" value="10" {{ checked[9] }}>
+                            <label for="10">10</label>
+                        </div>
+                        <div class="error">
+                            {% if error != None %}
+                                {{ error }}
+                            {% endif %}
+                        </div>
+                    <div class="form-group">
+                        <div id = "word-submit" class="form-element"><input style="background-color: lightgray;" type="submit" name = "submit" id = "submit"></div>
+                    </div>
+                </div>
+                <div class="form-group">
+                </div>
+            </form>
+    {% endif %}
 {% endblock %}

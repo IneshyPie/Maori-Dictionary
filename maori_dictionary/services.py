@@ -1,13 +1,11 @@
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-# Program name      : Maori Dictionary
-# Author            : Inesh Bhanuka
-# Date              : 2021-05-12
-# Project           : 91902 (NCEA L3 Internal)
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-# ~~~~~~~~~~~~~~~
-# Program imports
-# ~~~~~~~~~~~~~~~
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# Application name      : Maori Dictionary
+# Program name          : services.py
+# Program description   : This module services the web module of the application.
+# Author                : Inesh Bhanuka
+# Date                  : 2022-05-30
+# Project               : 91902 (NCEA L3 Internal)
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 from data_access import *
 from flask import Flask, session
 from flask_bcrypt import Bcrypt
@@ -20,6 +18,8 @@ import os
 # Declare constants
 # ~~~~~~~~~~~~~~~~~
 IMAGE_PATH = "static\\images\\"
+NO_IMAGE_FILENAME = "noimage.png"
+
 
 app = Flask(__name__)  # Create application object
 bcrypt = Bcrypt(app)  # Builds the password security platform
@@ -43,40 +43,6 @@ def allow_edit():
     return allow
 
 
-def get_image_filename(english_name):
-    path_file = f"{IMAGE_PATH}{english_name}.*"
-    listing = glob.glob(path_file)
-    for filename in listing:
-        return os.path.basename(filename)
-    return "noimage.png"
-
-
-def get_image_filenames(words):
-    image_names = []
-    for word in words:
-        image_names.append(get_image_filename(word[2]))
-    return image_names
-
-
-def get_form_data(form):
-    maori = form.get("maori").strip()
-    english = form.get("english").strip()
-    level = form.get("level")
-    return maori, english, level
-
-
-def get_word_form_data(word_form):
-    maori, english, level = get_form_data(word_form)
-    description = word_form.get("description").strip()
-    return maori, english, description, level
-
-
-def get_search_form_data(search_form):
-    maori, english, level = get_form_data(search_form)
-    most_recent = search_form.get("Date-Added").strip()
-    return maori, english, level, most_recent
-
-
 def do_search_by_form(search_form):
     maori, english, level, most_recent = get_search_form_data(search_form)
     if maori == "" and english == "" and level == "0" and most_recent == "0":
@@ -91,21 +57,12 @@ def do_search_by_browse(letter):
     return search_results
 
 
-def get_selected(alphabetic_letter):
-    selected = []
-    if alphabetic_letter.isalpha() and len(alphabetic_letter) == 1:
-        for i in range(26):
-            selected.append("")
-        selected[string.ascii_lowercase.index(alphabetic_letter.lower())] = "selected"
-    return selected
-
-
 def validate_add_word(word_form, category_id):
     maori, english, description, level = get_word_form_data(word_form)
     email = session.get('email')
     is_valid = True
     return_url = ""
-    success = insert_word(maori, english, description, level, category_id, email)
+    success = add_word(maori, english, description, level, category_id, email)
     if not success:
         is_valid = False
         return_url = f"/category/{category_id}?error=The+word+'{maori}'+with+the+english+meaning+'{english}'+already" \
@@ -125,28 +82,18 @@ def validate_update_word(word_form, word_id):
     return is_valid, return_url
 
 
-def get_checked(level):
-    checked = []
-    for i in range(1, 11):
-        if level == i:
-            checked.append("checked")
-        else:
-            checked.append("")
-    return checked
-
-
 def validate_add_category(category_form):
     category_name = category_form.get("category_name").strip().title()
     return_url = ""
     is_valid = True
     if category_name == "":
         is_valid = False
-        return_url = '/addcategory?error=Please+enter+category+name'
+        return_url = '/add_category?error=Please+enter+category+name'
     else:
         success = add_category(category_name)
         if not success:
             is_valid = False
-            return_url = '/addcategory?error=Category+already+exists'
+            return_url = '/add_category?error=Category+already+exists'
     return is_valid, return_url
 
 
@@ -201,16 +148,35 @@ def remove_word(word_id):
     return delete_word(word_id)
 
 
+def get_checked(level):
+    checked = []
+    for i in range(1, 11):
+        if level == i:
+            checked.append("checked")
+        else:
+            checked.append("")
+    return checked
+
+
+def get_selected(alphabetic_letter):
+    selected = []
+    if alphabetic_letter.isalpha() and len(alphabetic_letter) == 1:
+        for i in range(26):
+            selected.append("")
+        selected[string.ascii_lowercase.index(alphabetic_letter.lower())] = "selected"
+    return selected
+
+
 def get_categories():
     return get_category_list()
 
 
-def get_dictionary_word(word_id):
-    return get_word(word_id)
-
-
 def get_category_words(category_id):
     return get_words(category_id)
+
+
+def get_dictionary_word(word_id):
+    return get_word(word_id)
 
 
 def get_user():
@@ -222,3 +188,37 @@ def get_user():
         user_type = session.get('user_type').title()
         user_details = f"{first_name} {last_name} ({user_type})"
     return user_details
+
+
+def get_image_filename(english_name):
+    path_file = f"{IMAGE_PATH}{english_name}.*"
+    listing = glob.glob(path_file)
+    for filename in listing:
+        return os.path.basename(filename)
+    return NO_IMAGE_FILENAME
+
+
+def get_image_filenames(words):
+    image_names = []
+    for word in words:
+        image_names.append(get_image_filename(word[2]))
+    return image_names
+
+
+def get_form_data(form):
+    maori = form.get("maori").strip()
+    english = form.get("english").strip()
+    level = form.get("level")
+    return maori, english, level
+
+
+def get_word_form_data(word_form):
+    maori, english, level = get_form_data(word_form)
+    description = word_form.get("description").strip()
+    return maori, english, description, level
+
+
+def get_search_form_data(search_form):
+    maori, english, level = get_form_data(search_form)
+    most_recent = search_form.get("Date-Added").strip()
+    return maori, english, level, most_recent

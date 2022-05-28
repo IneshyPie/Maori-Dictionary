@@ -6,12 +6,13 @@
 
 {% block main %}
     <h2>{{ category_words[0][0] }} contents<strong>- Ready to Delete</strong></h2>
-    <form class="dataForm" method="post" action="/action_delete_category/{{ category_words[0][4] }}" class="inline"/>
-    <div id = "delete_category" class="form-group">
-        <p>Are you sure you wish to delete the category <strong>{{ category_words[0][0] }} </strong>
-        <button type="submit" name="submit_param" value="submit_value" class="link-button">Yes</button>
-        / <a href="/category/{{ category_words[0][4] }}">No</a></p>
-    </div>
+    <form  method="post" class="dataForm" action="/action_delete_category/{{ category_words[0][4] }}">
+        <div id = "delete_category" class="form-group">
+            <p>Are you sure you wish to delete the category <strong>{{ category_words[0][0] }} </strong>
+            <button type="submit" name="submit_param" value="submit_value" class="link-button">Yes</button>
+            / <a href="/category/{{ category_words[0][4] }}">No</a></p>
+        </div>
+    </form>
     <table class="table">
         <thead>
         <tr>
@@ -26,7 +27,7 @@
                     {% if word[1] != None %}
                         <td><a href="\word\{{ word[4] }}">{{ word[1] }}</a></td>
                         <td>{{ word[2] }}</td>
-                        <td><img src= "../static/images/{{ image_names[loop.index0] }}"></td>
+                        <td><img src= "../static/images/{{ image_names[loop.index0] }}" alt="Word image"></td>
                     {% endif %}
                 </tr>
             {% endfor %}
