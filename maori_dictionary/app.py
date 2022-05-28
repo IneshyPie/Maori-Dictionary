@@ -8,9 +8,10 @@
 # ~~~~~~~~~~~~~~~
 # Program imports
 # ~~~~~~~~~~~~~~~
-from maori_dictionary.services.services import *
+from services import *
 from flask import Flask, render_template, request, redirect, session
 from flask_bcrypt import Bcrypt
+
 
 # ~~~~~~~~~~~~~~~~~
 # Declare constants

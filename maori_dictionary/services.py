@@ -8,10 +8,11 @@
 # ~~~~~~~~~~~~~~~
 # Program imports
 # ~~~~~~~~~~~~~~~
-from maori_dictionary.data_access.data_access import *
+from data_access import *
 from flask import Flask, session
 from flask_bcrypt import Bcrypt
 import string
+
 
 # ~~~~~~~~~~~~~~~~~
 # Declare constants

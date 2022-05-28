@@ -1,5 +1,4 @@
 import csv
-from pathlib import Path
 
 category_list = []
 image_list = []
@@ -20,10 +19,10 @@ def find_category_id(category_name):
 
 
 def dictionary_initial_load():
-    with open('2_dictionary_initial_load.sql', 'w') as f:
+    with open('scripts/2_dictionary_initial_load.sql', 'w') as f:
         f.write(f"DELETE FROM dictionary;\n")
         f.write(f"DELETE FROM sqlite_sequence WHERE name = 'dictionary';\n\n")
-        with open('Vocab_List.csv') as csv_file:
+        with open('data/Vocab_List.csv') as csv_file:
             csv_reader = csv.reader(csv_file, delimiter=',')
             line_count = 0
             for row in csv_reader:
@@ -39,7 +38,7 @@ def dictionary_initial_load():
 
 
 def category_initial_load():
-    with open('1_category_initial_load.sql', 'w') as f:
+    with open('scripts/1_category_initial_load.sql', 'w') as f:
         f.write(f"DELETE FROM category;\n")
         f.write(f"DELETE FROM sqlite_sequence WHERE name = 'category';\n\n")
         category_count = 0
