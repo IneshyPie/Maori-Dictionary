@@ -183,10 +183,13 @@ def validate_signup_user(signup_form):
 def validate_login(login_form):
     email = login_form["email"].strip().lower()
     password = login_form["password"].strip()
-    stored_password = get_password(email)
-    if stored_password is None or not bcrypt.check_password_hash(stored_password, password):
+    user_details = get_user_details(email)
+    if user_details[0][2] is None or not bcrypt.check_password_hash(user_details[0][2], password):
         return False
-    session['email'] = email  # Successful login store email
+    session['email'] = email
+    session['first_name'] = user_details[0][0]
+    session['last_name'] = user_details[0][1]
+    session['user_type'] = user_details[0][3]
     return True
 
 
@@ -208,3 +211,14 @@ def get_dictionary_word(word_id):
 
 def get_category_words(category_id):
     return get_words(category_id)
+
+
+def get_user():
+    first_name = session.get('first_name')
+    if first_name is None:
+        user_details = ""
+    else:
+        last_name = session.get('last_name')
+        user_type = session.get('user_type').title()
+        user_details = f"{first_name} {last_name} ({user_type})"
+    return user_details

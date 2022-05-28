@@ -355,8 +355,12 @@ def add_user(first_name, last_name, email, hashed_password, user_type):
     return True
 
 
-def get_password(email):
-    query_results = execute_query("SELECT password FROM user_details WHERE email = ?", [email])
+def get_user_details(email):
+    query = """SELECT ud.first_name, ud.last_name, ud.password, ut.user_type 
+               FROM user_details ud
+               JOIN user_type ut on ud.user_type_id = ut.id 
+               WHERE ud.email = ?"""
+    query_results = execute_query(query, [email])
     if issubclass(type(query_results), Error) or len(query_results) == 0:
         return None
-    return query_results[0][0]
+    return query_results

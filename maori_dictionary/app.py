@@ -65,7 +65,8 @@ def render_search(letter):
                            category_list=get_categories(),
                            selected=get_selected(search_letter),
                            allow_edit=allow_edit(),
-                           error=error)
+                           error=error,
+                           current_user=get_user())
 
 
 @app.route('/category/<id>', methods=["POST", "GET"])
@@ -88,7 +89,8 @@ def render_category(id):
                            , image_names=image_names
                            , error=error
                            , category_list=get_categories()
-                           , allow_edit=allow_edit())
+                           , allow_edit=allow_edit()
+                           , current_user=get_user())
 
 
 @app.route('/word/<id>', methods=["POST", "GET"])
@@ -116,7 +118,8 @@ def render_word(id):
                            , checked=get_checked(word[0][4])
                            , category_list=get_categories()
                            , allow_edit=allow_edit()
-                           , breadcrumb=breadcrumb)
+                           , breadcrumb=breadcrumb
+                           , current_user=get_user())
 
 
 @app.route('/delete_category/<id>')
@@ -132,7 +135,8 @@ def render_delete_category(id):
                            logged_in=is_logged_in(),
                            image_names=image_names,
                            category_list=get_categories(),
-                           allow_edit=allow_edit())
+                           allow_edit=allow_edit(),
+                           current_user=get_user())
 
 
 @app.route('/delete_word/<id>')
@@ -151,7 +155,8 @@ def render_delete_word(id):
                            , image_name=get_image_filename(word[0][2])
                            , category_list=get_categories()
                            , breadcrumb=breadcrumb,
-                           allow_edit=allow_edit())
+                           allow_edit=allow_edit()
+                           , current_user=get_user())
 
 
 @app.route('/addcategory', methods=["POST", "GET"])
@@ -170,7 +175,8 @@ def render_add_category():
                            , logged_in=is_logged_in()
                            , category_list=get_categories()
                            , allow_edit=allow_edit()
-                           , error=error)
+                           , error=error
+                           , current_user=get_user())
 
 
 @app.route('/signup', methods=["POST", "GET"])
@@ -186,7 +192,8 @@ def render_signup():
     return render_template('signup.html'
                            , logged_in=is_logged_in()
                            , category_list=get_categories()
-                           , error=error)
+                           , error=error
+                           , current_user=get_user())
 
 
 @app.route('/logout')
@@ -209,7 +216,8 @@ def render_login():
     return render_template('login.html'
                            , logged_in=is_logged_in()
                            , category_list=get_categories()
-                           , error=error)
+                           , error=error
+                           , current_user=get_user())
 
 
 @app.route('/')
@@ -217,7 +225,8 @@ def render_home():
     return render_template('home.html'
                            , logged_in=is_logged_in()
                            , allow_edit=allow_edit()
-                           , category_list=get_categories())
+                           , category_list=get_categories()
+                           , current_user=get_user())
 
 
 if __name__ == '__main__':
