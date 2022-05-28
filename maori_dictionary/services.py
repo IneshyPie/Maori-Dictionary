@@ -12,11 +12,14 @@ from data_access import *
 from flask import Flask, session
 from flask_bcrypt import Bcrypt
 import string
+import glob
+import os
 
 
 # ~~~~~~~~~~~~~~~~~
 # Declare constants
 # ~~~~~~~~~~~~~~~~~
+IMAGE_PATH = "static\\images\\"
 
 app = Flask(__name__)  # Create application object
 bcrypt = Bcrypt(app)  # Builds the password security platform
@@ -38,6 +41,21 @@ def allow_edit():
     if allow is None:
         return False
     return allow
+
+
+def get_image_filename(english_name):
+    path_file = f"{IMAGE_PATH}{english_name}.*"
+    listing = glob.glob(path_file)
+    for filename in listing:
+        return os.path.basename(filename)
+    return "noimage.png"
+
+
+def get_image_filenames(words):
+    image_names = []
+    for word in words:
+        image_names.append(get_image_filename(word[2]))
+    return image_names
 
 
 def get_form_data(form):
@@ -87,14 +105,11 @@ def validate_add_word(word_form, category_id):
     email = session.get('email')
     is_valid = True
     return_url = ""
-    if word_already_exists(maori):
+    success = insert_word(maori, english, description, level, category_id, email)
+    if not success:
         is_valid = False
-        return_url = f"/category/{category_id}?error=The+word+{maori}+already+exists"
-    else:
-        success = insert_word(maori, english, description, level, category_id, email)
-        if not success:
-            is_valid = False
-            return_url = f"/category/{category_id}?error=The+word+{maori}+already+exists"
+        return_url = f"/category/{category_id}?error=The+word+'{maori}'+with+the+english+meaning+'{english}'+already" \
+                     f"+exists "
     return is_valid, return_url
 
 
@@ -103,14 +118,10 @@ def validate_update_word(word_form, word_id):
     email = session.get('email')
     is_valid = True
     return_url = ""
-    if word_already_exists_in_dictionary(maori, word_id):
+    success = update_word(maori, english, description, level, email, word_id)
+    if not success:
         is_valid = False
-        return_url = f"/word/{word_id}?error=The+word+'{maori}'+already+exists+in+dictionary"
-    else:
-        success = update_word(maori, english, description, level, email, word_id)
-        if not success:
-            is_valid = False
-            return_url = '/?error=Update+failed+try+again+later'
+        return_url = f"/word/{word_id}?error=The+word+'{maori}'+with+the+english+meaning+'{english}'+already+exists"
     return is_valid, return_url
 
 
@@ -131,14 +142,11 @@ def validate_add_category(category_form):
     if category_name == "":
         is_valid = False
         return_url = '/addcategory?error=Please+enter+category+name'
-    if category_already_exists(category_name):
+    success = add_category(category_name)
+    if not success:
         is_valid = False
         return_url = '/addcategory?error=Category+already+exists'
-    else:
-        success = add_category(category_name)
-        if not success:
-            is_valid = False
-            return_url = '/addcategory?error=Could+not+add+category+try+again+later'
+
     return is_valid, return_url
 
 
@@ -181,3 +189,22 @@ def validate_login(login_form):
     session['email'] = email  # Successful login store email
     return True
 
+
+def remove_category(category_id):
+    return delete_category(category_id)
+
+
+def remove_word(word_id):
+    return delete_word(word_id)
+
+
+def get_categories():
+    return get_category_list()
+
+
+def get_dictionary_word(word_id):
+    return get_word(word_id)
+
+
+def get_category_words(category_id):
+    return get_words(category_id)

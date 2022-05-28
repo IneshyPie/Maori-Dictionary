@@ -26,7 +26,7 @@ app.secret_key = "Duckyweu"  # The security key used
 def action_delete_category(id):
     if not is_logged_in() or not allow_edit():
         return redirect('/')
-    success = delete_category(id)
+    success = remove_category(id)
     if not success:
         redirect('/?error=Unknown+error+occurred+during+delete+of+category+please+try+again+later')
     return redirect('/')
@@ -36,7 +36,7 @@ def action_delete_category(id):
 def action_delete_word(id):
     if not is_logged_in() or not allow_edit():
         return redirect('/')
-    success = delete_word(id)
+    success = remove_word(id)
     if not success:
         redirect('/?error=Unknown+error+occurred+during+delete+of+word+please+try+again+later')
     breadcrumb = request.args.get("breadcrumb")
@@ -62,7 +62,7 @@ def render_search(letter):
                            search_results=search_results,
                            logged_in=is_logged_in(),
                            letter=letter,
-                           category_list=get_category_list(),
+                           category_list=get_categories(),
                            selected=get_selected(search_letter),
                            allow_edit=allow_edit(),
                            error=error)
@@ -75,7 +75,7 @@ def render_category(id):
         if not is_valid:
             return redirect(return_url)
         return redirect(f'/category/{id}')
-    words = get_words(id)
+    words = get_category_words(id)
     if words is None:
         return redirect('/?error=Category+could+not+be+retrieved+unknown+error')
     image_names = get_image_filenames(words)
@@ -87,7 +87,7 @@ def render_category(id):
                            , logged_in=is_logged_in()
                            , image_names=image_names
                            , error=error
-                           , category_list=get_category_list()
+                           , category_list=get_categories()
                            , allow_edit=allow_edit())
 
 
@@ -99,7 +99,7 @@ def render_word(id):
             return redirect(return_url)
         breadcrumb = request.args.get("breadcrumb")
         return redirect(f'/word/{id}?breadcrumb={breadcrumb}')
-    word = get_word(id)
+    word = get_dictionary_word(id)
     if word is None:
         return redirect('/?error=Word+could+not+be+retrieved+unknown+error')
     error = request.args.get('error')
@@ -114,7 +114,7 @@ def render_word(id):
                            , error=error
                            , image_name=get_image_filename(word[0][2])
                            , checked=get_checked(word[0][4])
-                           , category_list=get_category_list()
+                           , category_list=get_categories()
                            , allow_edit=allow_edit()
                            , breadcrumb=breadcrumb)
 
@@ -131,7 +131,7 @@ def render_delete_category(id):
                            category_words=category_words,
                            logged_in=is_logged_in(),
                            image_names=image_names,
-                           category_list=get_category_list(),
+                           category_list=get_categories(),
                            allow_edit=allow_edit())
 
 
@@ -139,7 +139,7 @@ def render_delete_category(id):
 def render_delete_word(id):
     if not is_logged_in() or not allow_edit():
         return redirect('/')
-    word = get_word(id)
+    word = get_dictionary_word(id)
     if word is None:
         return redirect('/?error=Word+does+not+exist+or+unknown+error')
     breadcrumb = request.args.get("breadcrumb")
@@ -149,7 +149,7 @@ def render_delete_word(id):
                            , word_list=word
                            , logged_in=is_logged_in()
                            , image_name=get_image_filename(word[0][2])
-                           , category_list=get_category_list()
+                           , category_list=get_categories()
                            , breadcrumb=breadcrumb,
                            allow_edit=allow_edit())
 
@@ -168,7 +168,7 @@ def render_add_category():
         error = ""
     return render_template('add_category.html'
                            , logged_in=is_logged_in()
-                           , category_list=get_category_list()
+                           , category_list=get_categories()
                            , allow_edit=allow_edit()
                            , error=error)
 
@@ -185,7 +185,7 @@ def render_signup():
     error = request.args.get('error')
     return render_template('signup.html'
                            , logged_in=is_logged_in()
-                           , category_list=get_category_list()
+                           , category_list=get_categories()
                            , error=error)
 
 
@@ -208,7 +208,7 @@ def render_login():
         error = ""
     return render_template('login.html'
                            , logged_in=is_logged_in()
-                           , category_list=get_category_list()
+                           , category_list=get_categories()
                            , error=error)
 
 
@@ -217,7 +217,7 @@ def render_home():
     return render_template('home.html'
                            , logged_in=is_logged_in()
                            , allow_edit=allow_edit()
-                           , category_list=get_category_list())
+                           , category_list=get_categories())
 
 
 if __name__ == '__main__':

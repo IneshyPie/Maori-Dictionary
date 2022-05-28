@@ -13,9 +13,9 @@
 
 {% block main %}
     {% if logged_in and allow_edit %}
-        <h2>{{ maori }} - ({{english}})<strong> -</strong> <a href="\delete_word\{{ id }}?breadcrumb={{ breadcrumb }}">Delete Word</a></h2>
+        <h2>{{ maori }} ({{english}})<strong> -</strong> <a href="\delete_word\{{ id }}?breadcrumb={{ breadcrumb }}">Delete Word</a></h2>
     {% else %}
-        <h2>{{ maori }} - ({{english}})</h2>
+        <h2>{{ maori }} ({{english}})</h2>
     {% endif %}
     <table class="word-table">
         <tbody>

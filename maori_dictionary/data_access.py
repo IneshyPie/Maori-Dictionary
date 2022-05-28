@@ -10,14 +10,12 @@
 # ~~~~~~~~~~~~~~~
 import sqlite3
 from sqlite3 import Error
-import glob
-import os
+
 
 # ~~~~~~~~~~~~~~~~~
 # Declare constants
 # ~~~~~~~~~~~~~~~~~
 DATABASE = "database/dictionary.db"
-IMAGE_PATH = "static\\images\\"
 
 
 def get_connection(db_file):
@@ -65,21 +63,6 @@ def execute_command(command, args=None):
     return
 
 
-def get_image_filename(english_name):
-    path_file = f"{IMAGE_PATH}{english_name}.*"
-    listing = glob.glob(path_file)
-    for filename in listing:
-        return os.path.basename(filename)
-    return "noimage.png"
-
-
-def get_image_filenames(words):
-    image_names = []
-    for word in words:
-        image_names.append(get_image_filename(word[2]))
-    return image_names
-
-
 def get_allow_edit(email):
     query = """SELECT allow_edit
                FROM user_type
@@ -111,7 +94,7 @@ def get_search_results(maori, english, level, most_recent):
                      WHERE 
                      maori LIKE ? AND 
                      english LIKE ?
-                     ORDER BY date_added DESC, maori
+                     ORDER BY date_added DESC, maori, english
                      LIMIT 20
                      """
             args = [maori_search, english_search]
@@ -122,7 +105,7 @@ def get_search_results(maori, english, level, most_recent):
                      WHERE 
                      maori LIKE ? AND 
                      level = ?
-                     ORDER BY date_added DESC, maori
+                     ORDER BY date_added DESC, maori, english
                      LIMIT 20
                      """
             args = [maori_search, level_search]
@@ -133,7 +116,7 @@ def get_search_results(maori, english, level, most_recent):
                      WHERE 
                      english LIKE ? AND 
                      level = ?
-                     ORDER BY date_added DESC, maori
+                     ORDER BY date_added DESC, maori, english
                      LIMIT 20
                      """
             args = [english_search, level_search]
@@ -143,7 +126,7 @@ def get_search_results(maori, english, level, most_recent):
                      LEFT JOIN user_details u on d.user_id = u.id
                      WHERE 
                      maori LIKE ?
-                     ORDER BY date_added DESC, maori
+                     ORDER BY date_added DESC, maori, english
                      LIMIT 20 
                      """
             args = [maori_search]
@@ -153,7 +136,7 @@ def get_search_results(maori, english, level, most_recent):
                      LEFT JOIN user_details u on d.user_id = u.id
                      WHERE 
                      english LIKE ?
-                     ORDER BY date_added DESC, maori
+                     ORDER BY date_added DESC, maori, english
                      LIMIT 20
                      """
             args = [english_search]
@@ -163,7 +146,7 @@ def get_search_results(maori, english, level, most_recent):
                      LEFT JOIN user_details u on d.user_id = u.id
                      WHERE 
                      level = ?
-                     ORDER BY date_added DESC, maori
+                     ORDER BY date_added DESC, maori, english
                      LIMIT 20
                      """
             args = [level_search]
@@ -175,7 +158,7 @@ def get_search_results(maori, english, level, most_recent):
                      maori LIKE ? AND
                      english LIKE ? AND
                      level = ?
-                     ORDER BY date_added DESC, maori
+                     ORDER BY date_added DESC, maori, english
                      LIMIT 20
                      """
             args = [maori_search, english_search, level_search]
@@ -187,7 +170,7 @@ def get_search_results(maori, english, level, most_recent):
                      WHERE 
                      maori LIKE ? AND 
                      english LIKE ?
-                     ORDER BY maori
+                     ORDER BY maori, english
                      """
             args = [maori_search, english_search]
         if maori != "" and english == "" and level != "0":
@@ -197,7 +180,7 @@ def get_search_results(maori, english, level, most_recent):
                      WHERE 
                      maori LIKE ? AND 
                      level = ?
-                     ORDER BY maori
+                     ORDER BY maori, english
                      """
             args = [maori_search, level_search]
         if maori == "" and english != "" and level != "0":
@@ -207,7 +190,7 @@ def get_search_results(maori, english, level, most_recent):
                      WHERE 
                      english LIKE ? AND 
                      level = ?
-                     ORDER BY maori
+                     ORDER BY maori, english
                      """
             args = [english_search, level_search]
         if maori != "" and english == "" and level == "0":
@@ -216,7 +199,7 @@ def get_search_results(maori, english, level, most_recent):
                      LEFT JOIN user_details u on d.user_id = u.id
                      WHERE 
                      maori LIKE ?
-                     ORDER BY maori 
+                     ORDER BY maori, english 
                      """
             args = [maori_search]
         if maori == "" and english != "" and level == "0":
@@ -225,7 +208,7 @@ def get_search_results(maori, english, level, most_recent):
                      LEFT JOIN user_details u on d.user_id = u.id
                      WHERE 
                      english LIKE ?
-                     ORDER BY maori
+                     ORDER BY maori, english
                      """
             args = [english_search]
         if maori == "" and english == "" and level != "0":
@@ -234,7 +217,7 @@ def get_search_results(maori, english, level, most_recent):
                      LEFT JOIN user_details u on d.user_id = u.id
                      WHERE 
                      level = ?
-                     ORDER BY maori
+                     ORDER BY maori, english
                      """
             args = [level_search]
         if maori != "" and english != "" and level != "0":
@@ -245,14 +228,14 @@ def get_search_results(maori, english, level, most_recent):
                      maori LIKE ? AND
                      english LIKE ? AND
                      level = ?
-                     ORDER BY maori
+                     ORDER BY maori, english
                      """
             args = [maori_search, english_search, level_search]
     elif most_recent == "1":
         query = """SELECT d.id, d.maori, d.english, d.level, d.date_added, ifnull(u.first_name, ''), ifnull(u.last_name, '')
                  FROM dictionary d
                  LEFT JOIN user_details u on d.user_id = u.id
-                 ORDER BY date_added DESC, maori
+                 ORDER BY date_added DESC, maori, english
                  LIMIT 20
                  """
     else:
@@ -285,18 +268,11 @@ def get_browse_results(letter):
                FROM dictionary d
                LEFT JOIN user_details u on d.user_id = u.id
                WHERE maori LIKE ?
-               ORDER BY maori"""
+               ORDER BY maori, english"""
     query_results = execute_query(query, [f"{letter}%"])
     if issubclass(type(query_results), Error):
         return None
     return query_results
-
-
-def word_already_exists(maori):
-    query_results = execute_query("SELECT id FROM dictionary WHERE maori = ?", [maori])
-    if issubclass(type(query_results), Error) or len(query_results) != 0:
-        return True
-    return False
 
 
 def insert_word(maori, english, description, level, category_id, email):
@@ -314,18 +290,11 @@ def get_words(category_id):
                FROM category c
                LEFT JOIN dictionary d on c.id = d.category_id
                WHERE c.id = ?
-               ORDER BY maori"""
+               ORDER BY maori, english"""
     query_results = execute_query(query, [category_id])
     if issubclass(type(query_results), Error) or len(query_results) == 0:
         return None
     return query_results
-
-
-def word_already_exists_in_dictionary(maori, word_id):
-    query_results = execute_query("SELECT id FROM dictionary WHERE maori = ? AND id <> ?", [maori, word_id])
-    if issubclass(type(query_results), Error) or len(query_results) != 0:
-        return True
-    return False
 
 
 def update_word(maori, english, description, level, email, word_id):
@@ -350,18 +319,6 @@ def update_word(maori, english, description, level, email, word_id):
     return True
 
 
-def get_category_words(category_id):
-    query = """SELECT c.category_name, d.maori, d.english, d.id, c.id
-               FROM category c
-               LEFT JOIN dictionary d on c.id = d.category_id
-               WHERE c.id = ?
-               ORDER BY maori"""
-    query_results = execute_query(query, [category_id])
-    if issubclass(type(query_results), Error) or len(query_results) == 0:
-        return None
-    return query_results
-
-
 def get_word(word_id):
     query = """SELECT d.id
                , d.maori
@@ -378,13 +335,6 @@ def get_word(word_id):
     if issubclass(type(query_results), Error) or len(query_results) == 0:
         return None
     return query_results
-
-
-def category_already_exists(category_name):
-    category_ids = execute_query("SELECT id FROM category WHERE category_name = ?", [category_name])
-    if issubclass(type(category_ids), Error) or len(category_ids) != 0:
-        return True
-    return False
 
 
 def add_category(category_name):

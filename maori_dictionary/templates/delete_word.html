@@ -5,10 +5,10 @@
 {% endblock %}
 
 {% block main %}
-    <h2>{{ word_list[0][1] }} contents<strong>- Ready to Delete</strong></h2>
+    <h2>{{ word_list[0][1] }} ({{ word_list[0][2] }})<strong> - Ready to Delete</strong></h2>
     <form class="dataForm" method="post" action="/action_delete_word/{{ word_list[0][0] }}?breadcrumb={{ breadcrumb }}" class="inline"/>
     <div id = "delete_word" class="form-group">
-        <p>Are you sure you wish to delete the word <strong>{{ word_list[0][1] }} </strong>
+        <p>Are you sure you wish to delete the word <strong>{{ word_list[0][1] }} ({{ word_list[0][2] }})</strong>
         <button type="submit" name="submit_param" value="submit_value" class="link-button">Yes</button>
         / <a href="/word/{{ word_list[0][0] }}?breadcrumb={{ breadcrumb }}">No</a></p>
     </div>
