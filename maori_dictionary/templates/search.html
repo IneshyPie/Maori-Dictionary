@@ -1,9 +1,9 @@
 {% extends "base.html" %}
-
+<!-- A block contains code for the title -->
 {% block title %}
     Search
 {% endblock %}
-
+<!-- A block contains the code for the main part of the page -->
 {% block main %}
     <h1>Search</h1>
         <div class="letter-label">Browse by Letter (Maori)
@@ -85,6 +85,7 @@
             </tr>
         </thead>
         <tbody>
+            <!-- Loops through the search results array and creates a table row for each word in the array -->
             {% for word in search_results %}
                 <tr>
                     <td><a href="/word/{{ word[0] }}?breadcrumb=/search/{{ letter }}">{{ word[1] }}</a></td>

@@ -1,9 +1,9 @@
 {% extends "base.html" %}
-
+<!-- A block contains code for the title -->
 {% block title %}
     Maori Dictionary Delete Category {{ category_words[0][0] }}
 {% endblock %}
-
+<!-- A block contains the code for the main part of the page -->
 {% block main %}
     <h2>{{ category_words[0][0] }} contents<strong>- Ready to Delete</strong></h2>
     <form  method="post" class="dataForm" action="/action_delete_category/{{ category_words[0][4] }}">
@@ -22,8 +22,10 @@
         </tr>
         </thead>
         <tbody>
+            <!-- Loops through the category array and creates a table row for each word in the array -->
             {% for word in category_words %}
                 <tr>
+                    <!-- If the maori word passed in is not None only then display the table contents -->
                     {% if word[1] != None %}
                         <td><a href="\word\{{ word[4] }}">{{ word[1] }}</a></td>
                         <td>{{ word[2] }}</td>

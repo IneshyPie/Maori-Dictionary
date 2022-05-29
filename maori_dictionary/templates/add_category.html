@@ -1,9 +1,9 @@
 {%  extends 'base.html' %}
-
+<!-- A block contains code for the page heading -->
 {% block pageheading %}
     Add Category
 {% endblock %}
-
+<!-- A block contains the code for the main part of the page -->
 {% block main %}
     <h2>Add Category</h2>
     <p>Enter a category name here and click submit to add this category to the dictionary</p>
@@ -12,6 +12,7 @@
             <div class="form-element"><input type="text" name = "category_name" required></div>
             <div class="form-group"></div>
                 <div class="error">
+                    <!-- If the error passed in is not None only then show the error on screen -->
                     {% if error != None %}
                         {{ error }}
                     {% endif %}

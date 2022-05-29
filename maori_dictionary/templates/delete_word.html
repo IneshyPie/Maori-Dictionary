@@ -1,9 +1,9 @@
 {% extends "base.html" %}
-
+<!-- A block contains code for the title -->
 {% block title %}
     Maori Dictionary Delete Word {{ word_list[0][1] }}
 {% endblock %}
-
+<!-- A block contains the code for the main part of the page -->
 {% block main %}
     <h2>{{ word_list[0][1] }} ({{ word_list[0][2] }})<strong> - Ready to Delete</strong></h2>
     <form class="dataForm" method="post" action="/action_delete_word/{{ word_list[0][0] }}?breadcrumb={{ breadcrumb }}">
@@ -15,6 +15,7 @@
     </form>
     <table class="word-table">
         <tbody>
+            <!-- If the maori word passed in is not None only then display the table contents -->
             {% if maori != None %}
                 <tr>
                     <td><strong>Description: </strong></td>

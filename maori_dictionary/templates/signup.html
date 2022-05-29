@@ -1,9 +1,9 @@
 {%  extends 'base.html' %}
-
+<!-- A block contains code for the page heading -->
 {% block pageheading %}
     Signup
 {% endblock %}
-
+<!-- A block contains the code for the main part of the page -->
 {% block main %}
     <form class="dataForm" method="post">
     <div class="form-group">
@@ -38,6 +38,7 @@
         </div>
     </div>
     <div class="error">
+        <!-- If the error passed in is not None only then show the error on screen -->
         {% if error != None %}
             {{ error }}
         {% endif %}

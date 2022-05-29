@@ -53,7 +53,7 @@ def render_search(letter):
             error = ""
             search_results = do_search_by_browse(letter)
     if search_results is None:
-        return redirect(f'/search/~?error=Unknown+error+has+occurred+during+search+please+try+again+later')
+        return redirect(f'/search/~?error=Unexpected+error+has+occurred+during+search+please+try+again+later')
     return render_template('search.html',
                            search_results=search_results,
                            logged_in=is_logged_in(),
@@ -91,7 +91,7 @@ def render_delete_word(word_id):
         return redirect('/')
     word = get_dictionary_word(word_id)
     if word is None:
-        return redirect('/?error=Word+does+not+exist+or+unknown+error')
+        return redirect('/?error=Word+does+not+exist+or+unexpected+error')
     breadcrumb = request.args.get("breadcrumb")
     if breadcrumb is None:
         breadcrumb = "/"
@@ -126,7 +126,7 @@ def action_delete_word(word_id):
         return redirect('/')
     success = remove_word(word_id)
     if not success:
-        redirect('/?error=Unknown+error+occurred+during+delete+of+word+please+try+again+later')
+        redirect('/?error=Unexpected+error+occurred+during+delete+of+word+please+try+again+later')
     breadcrumb = request.args.get("breadcrumb")
     return redirect(f'{breadcrumb}')
 
@@ -165,7 +165,7 @@ def render_word(word_id):
         return redirect(f'/word/{word_id}?breadcrumb={breadcrumb}')
     word = get_dictionary_word(word_id)
     if word is None:
-        return redirect('/?error=Word+could+not+be+retrieved+unknown+error')
+        return redirect('/?error=Word+could+not+be+retrieved+unexpected+error')
     error = request.args.get('error')
     if breadcrumb is None:
         breadcrumb = "/"
@@ -206,7 +206,7 @@ def render_delete_category(category_id):
         return redirect('/')
     category_words = get_category_words(category_id)
     if category_words is None:
-        return redirect('/?error=Unknown+error')
+        return redirect('/?error=Unexpected+error')
     return render_template('delete_category.html',
                            category_words=category_words,
                            logged_in=is_logged_in(),
@@ -237,7 +237,7 @@ def action_delete_category(category_id):
         return redirect('/')
     success = remove_category(category_id)
     if not success:
-        redirect('/?error=Unknown+error+occurred+during+delete+of+category+please+try+again+later')
+        redirect('/?error=Unexpected+error+occurred+during+delete+of+category+please+try+again+later')
     return redirect('/')
 
 
@@ -305,7 +305,7 @@ def render_category(category_id):
         return redirect(f'/category/{category_id}')
     words = get_category_words(category_id)
     if words is None:
-        return redirect('/?error=Category+could+not+be+retrieved+unknown+error')
+        return redirect('/?error=Category+could+not+be+retrieved+unexpected+error')
     error = request.args.get('error')
     return render_template('category.html',
                            category_words=words,

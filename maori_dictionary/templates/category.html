@@ -1,12 +1,14 @@
 {% extends "base.html" %}
-
+<!-- A block contains code for the title -->
 {% block title %}
     Maori Dictionary Category {{ category_words[0][0] }}
 {% endblock %}
-
+ <!-- A block contains the code for the main part of the page -->
 {% block main %}
+    <!-- Show heading only if the user is logged in and is a teacher -->
     {% if logged_in and allow_edit %}
         <h2>{{ category_words[0][0] }} <strong>-</strong> <a href="\delete_category\{{ category_words[0][4] }}">Delete Category</a></h2>
+    <!-- Shows a default heading -->
     {% else %}
         <h2>{{ category_words[0][0] }}</h2>
     {% endif %}
@@ -19,8 +21,10 @@
             </tr>
         </thead>
         <tbody>
+            <!-- Loops through the category array and creates a table row for each word in the array -->
             {% for word in category_words %}
                 <tr>
+                    <!-- If the maori word passed in is not None only then display the table contents -->
                     {% if word[1] != None %}
                         <td><a href="\word\{{ word[3] }}?breadcrumb=/category/{{ category_words[0][4] }}">{{ word[1] }}</a></td>
                         <td>{{ word[2] }}</td>
@@ -30,6 +34,7 @@
             {% endfor %}
         </tbody>
     </table>
+    <!-- Show form only if the user is logged in and is a teacher -->
     {% if logged_in and allow_edit %}
         <form id = "add_word" class="dataForm" method="post">
             <h3>Add Word to this Category</h3>
@@ -69,6 +74,7 @@
                         <input type="radio" id="10" name="level" value="10">
                         <label for="10">10</label>
                     </div>
+                    <!-- If the error passed in is not None only then show the error on screen -->
                     {% if error != None %}
                         <div class="error">{{ error }}</div>
                     {% endif %}

@@ -4,6 +4,7 @@
 	<link href="{{ url_for('static', filename='css/style.css') }}" rel="stylesheet">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<link href="https://fonts.googleapis.com/css2?family=Comfortaa&family=Suez+One&display=swap" rel="stylesheet">
+    <!-- A block that can be used in HTML files that extend this file -->
 	<title>{% block title %}{% endblock %}</title>
 	<meta name="Maori Dictionary" content="Author:I Bhanuka, Content: A dictionary to convert maori words to english.">
 </head>
@@ -19,7 +20,9 @@
                 <div class="main-links">
                     <li><a href="/" style="color: black;">Home</a></li>
                     <li><a href="/search/~" style="color: black;">Search</a></li>
+                    <!-- Show links only if the user is logged in -->
                     {% if logged_in %}
+                        <!-- Show links only if the user is logged in and is a teacher -->
                         {% if allow_edit %}
                             <li><a href="/add_category" style="color: black;">Add Category</a></li>
                         {% endif %}
@@ -29,12 +32,14 @@
                     {% endif %}
                 </div>
                 <br>
+                 <!-- Loops through the category array and creates a link for each category in the array -->
                 {% for category in category_list %}
                     <li><a href="/category/{{ category[0] }}">{{ category[1] }}</a></li>
                 {% endfor %}
 			</ul>
 		</nav>
 		<main style="border: solid black 2px">
+            <!-- A block that can be used in HTML files that extends this file -->
             {% block main %}{% endblock %}
         </main>
 		<footer>

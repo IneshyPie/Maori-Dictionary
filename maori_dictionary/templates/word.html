@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+    <!-- Set global variables as these values have been used more than once in this file -->
     {% set id = word_details[0][0] %}
     {% set maori = word_details[0][1] %}
     {% set english = word_details[0][2] %}
@@ -7,18 +8,22 @@
     {% set image = image_name %}
     {% set date_added = word_details[0][5] %}
     {% set edited_by = word_details[0][6] + ' ' + word_details[0][7] %}
+<!-- A block contains code for the title -->
 {% block title %}
     Maori Dictionary Word {{ maori }}
 {% endblock %}
-
+<!-- A block contains the code for the main part of the page -->
 {% block main %}
+    <!-- Show heading only if the user is logged in and is a teacher -->
     {% if logged_in and allow_edit %}
         <h2>{{ maori }} ({{english}})<strong> -</strong> <a href="\delete_word\{{ id }}?breadcrumb={{ breadcrumb }}">Delete Word</a></h2>
+    <!-- Shows a default heading -->
     {% else %}
         <h2>{{ maori }} ({{english}})</h2>
     {% endif %}
     <table class="word-table">
         <tbody>
+            <!-- If the maori word passed in is not None only then display the table contents -->
             {% if maori != None %}
                 <tr>
                     <td><strong>Description: </strong></td>
@@ -40,6 +45,7 @@
             {% endif %}
         </tbody>
     </table>
+    <!-- Show form only if the user is logged in and is a teacher -->
     {% if logged_in and allow_edit %}
     <form id = "edit_word" class="dataForm" method="post">
                 <h3>Edit Word</h3>
@@ -80,6 +86,7 @@
                             <label for="10">10</label>
                         </div>
                         <div class="error">
+                            <!-- If the error passed in is not None only then show the error on screen -->
                             {% if error != None %}
                                 {{ error }}
                             {% endif %}
