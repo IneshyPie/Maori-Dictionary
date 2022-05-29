@@ -70,7 +70,7 @@ def validate_add_word(word_form, category_id):
     return is_valid, return_url
 
 
-def validate_update_word(word_form, word_id):
+def validate_update_word(word_form, word_id, breadcrumb):
     maori, english, description, level = get_word_form_data(word_form)
     email = session.get('email')
     is_valid = True
@@ -78,7 +78,7 @@ def validate_update_word(word_form, word_id):
     success = update_word(maori, english, description, level, email, word_id)
     if not success:
         is_valid = False
-        return_url = f"/word/{word_id}?error=The+word+'{maori}'+with+the+english+meaning+'{english}'+already+exists"
+        return_url = f"/word/{word_id}?breadcrumb={breadcrumb}&error=The+word+'{maori}'+with+the+english+meaning+'{english}'+already+exists"
     return is_valid, return_url
 
 
@@ -127,7 +127,7 @@ def validate_signup_user(signup_form):
     return is_valid, return_url
 
 
-def validate_login(login_form):
+def validate_and_login_user(login_form):
     email = login_form["email"].strip().lower()
     password = login_form["password"].strip()
     user_details = get_user_details(email)
